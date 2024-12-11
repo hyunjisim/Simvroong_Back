@@ -14,6 +14,9 @@ export async function sendTokenToSMS(userphone) {
             from: `${config.api.hpNumber}`,
             text: `발신자 : [Simbureung] 인증번호 입력 -> [${token}]`
         })
+
+        const hp_token = await 
+        
         console.log('발송 성공:', result)
         return result
     } catch (err) {
