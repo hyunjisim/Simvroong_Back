@@ -27,12 +27,8 @@ export const config = {
         apiKey: required('API_KEY'),
         apiSecretKey: required('API_SECRET'),
         hpNumber: required('MY_NUMBER')
+    },
+    db: {
+        host: required('DB_HOST')
     }
-    // db: {
-    //     host: required('DB_HOST'),
-    //     port: required('DB_PORT'),
-    //     user: required('DB_USER'),
-    //     password: required('DB_PASSWORD'),
-    //     database: required('DB_DATABASE')
-    // }
 }

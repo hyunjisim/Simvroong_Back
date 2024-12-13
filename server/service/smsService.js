@@ -1,8 +1,8 @@
 import coolsms from 'coolsms-node-sdk'
 import { config } from '../config/config.js'
 
-export async function sendTokenToSMS(userphone) {
-    const token = Math.floor(1000 + Math.random() * 9999)
+export async function sendTokenToSMS(phone) {
+    const code = Math.floor(1000 + Math.random() * 9000)
 
     const mysms = coolsms.default
 
@@ -10,15 +10,13 @@ export async function sendTokenToSMS(userphone) {
 
     try {
         const result = await messageService.sendOne({
-            to: `${userphone}`,
+            to: phone,
             from: `${config.api.hpNumber}`,
-            text: `발신자 : [Simbureung] 인증번호 입력 -> [${token}]`
+            text: `발신자 : [Simbureung] 인증번호 입력 -> [${code}]`
         })
 
-        const hp_token = await 
-        
         console.log('발송 성공:', result)
-        return result
+        return code
     } catch (err) {
         console.error('발송 실패:', err)
         return

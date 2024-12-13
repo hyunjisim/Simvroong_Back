@@ -9,28 +9,78 @@ async function createJwtToken(id) {
     return jwt.sign({ id }, config.jwt.secretKey, { expiresIn: config.jwt.expiresInSec })
 }
 
-export async function signup(req, res, next) {
-    const { nickname, userid, password, name, birth, gender, hp } = req.body
-    // 회원 중복 체크
-    const found = await authRepository.findByuserId(userid)
-    if (found) {
-        return res.status(409).json({ message: `해당 아이디가 이미 존재합니다` })
+export async function registerUser(req, res, next) {
+    const { nickname, userId, password, confirmPassword, name, birth, gender, phoneNumber } = req.body
+
+    if (!nickname || !userId || !password || !confirmPassword || !name || !birth || !gender || !phoneNumber) {
+        return { success: false, message: '모든 필드를 입력해주세요.' }
     }
 
-    // 비밀번호 암호화
+    if (password !== confirmPassword) {
+        return res.status(400).send('password가 일치하지 않습니다 다시 입력해주세요')
+    }
+
     const hashed = bcrypt.hashSync(password, config.bcrypt.saltRounds)
 
-    // 회원가입 정보에 맞게 생성
-    await authRepository.createUser({
+    const isChecked = await authRepository.checkVerified(phoneNumber)
+    console.log(isChecked)
+
+    if (!isChecked) {
+        return res.status(400).send('핸드폰 인증이 안된 사용자입니다')
+    }
+
+    let users = await authRepository.createUser({
         nickname,
-        userid,
+        userId,
         password: hashed,
         name,
         birth,
         gender,
-        hp
+        phone: {
+            number: phoneNumber,
+            verified: isChecked
+        },
+        termsAgreed: {
+            requiredTerms: true,
+            optionalTerms: false
+        }
     })
-    res.status(201)
+
+    const token = await createJwtToken(users._id)
+    console.log(token)
+    await authRepository.deleteVerify(phoneNumber)
+    return res.status(201).json({ token, userId })
+}
+
+export async function sendCode(req, res, next) {
+    const { phoneNumber } = req.body
+
+    if (!phoneNumber) {
+        return res.status(400).json({ success: false, message: '전화번호를 입력해주세요.' })
+    }
+
+    const code = await sendTokenToSMS(phoneNumber) // 1234
+
+    const isSave = await authRepository.setCode(phoneNumber, code)
+
+    if (!isSave) {
+        return res.status(404).send('저장실패')
+    }
+
+    return res.status(204).send('저장성공')
+}
+
+export async function verifyCode(req, res, next) {
+    const { phoneNumber, code } = req.body // 1234
+
+    const isVerified = await authRepository.getCode(phoneNumber) // 1234
+    console.log(code, isVerified)
+
+    if (code !== isVerified) {
+        return res.status(401).send('등록된 아이디 없음')
+    }
+
+    return res.status(204).send('')
 }
 
 export async function login(req, res, next) {
@@ -65,7 +115,7 @@ export async function findId(req, res, next) {
         return res.status(401).send('등록된 아이디 없음')
     }
 
-    return res.status(201).json({ "userid": user})
+    return res.status(201).json({ userid: user })
 }
 
 export async function findPw() {}
@@ -77,10 +127,10 @@ export async function verify(req, res, next) {
     }
 }
 
-export async function me(req, res, next) {
-    const user = await authRepository.findById(req.userid)
-    if (!user) {
-        return res.status(404).json({ message: '사용자가 없음' })
-    }
-    res.status(200).json({ token: req.token, username: user.username })
-}
+// export async function me(req, res, next) {
+//     const user = await authRepository.findById(req.userid)
+//     if (!user) {
+//         return res.status(404).json({ message: '사용자가 없음' })
+//     }
+//     res.status(200).json({ token: req.token, username: user.username })
+// }
