@@ -45,11 +45,8 @@ export async function registerUser(req, res, next) {
             optionalTerms: false
         }
     })
-
-    const token = await createJwtToken(users._id)
-    console.log(token)
     await authRepository.deleteVerify(phoneNumber)
-    return res.status(201).json({ token, userId })
+    return res.status(201).send({ message: '회원가입 성공!' })
 }
 
 export async function sendCode(req, res, next) {
@@ -83,10 +80,12 @@ export async function verifyCode(req, res, next) {
     return res.status(204).send('')
 }
 
+// LoginPage
+
 export async function login(req, res, next) {
     const { userid, password } = req.body
     // 아이디 중복 체크
-    const user = await authRepository.findById(userid)
+    const user = await authRepository.findUserById(userid)
     if (!user) {
         return res.status(401).send('아이디를 찾을 수 없음')
     }
@@ -97,8 +96,10 @@ export async function login(req, res, next) {
     if (!PW_CHECK) {
         return res.status(401).json({ message: '아이디 또는 비밀번호 확인' })
     }
-    const token = await createJwtToken(user.userid)
-    res.status(200).json({ token, userid })
+
+    const token = await createJwtToken(user._id)
+
+    return res.status(200).json({ token, userid })
 }
 
 export async function findId(req, res, next) {
@@ -117,8 +118,6 @@ export async function findId(req, res, next) {
 
     return res.status(201).json({ userid: user })
 }
-
-export async function findPw() {}
 
 export async function verify(req, res, next) {
     const token = req.header['Token'] // header를 까봤을 때 Token이라는 항목을확인

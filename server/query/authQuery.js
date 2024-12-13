@@ -12,9 +12,10 @@ const UserSchema = new mongoose.Schema({
         number: { type: String, required: true, unique: true }, // 휴대폰 번호
         verified: { type: Boolean, default: false } // 인증 여부
     },
+    isPartner: { type: Boolean, default: false },
     termsAgreed: {
         // 약관 동의 정보
-        requiredTerms: { type: Boolean, default: true }, // 필수 약관 동의
+        requiredTerms: { type: Boolean, default: true}, // 필수 약관 동의
         optionalTerms: { type: Boolean, default: false } // 선택 약관 동의
     },
     createdAt: { type: Date, default: Date.now }, // 가입 일시
@@ -71,4 +72,7 @@ export async function deleteVerify(phoneNumber) {
     return UserVerify.findByIdAndDelete(user._id)
 }
 
-// export default User
+export async function findUserById(userid) {
+    const user = await User.findOne({ 'userId' : userid})
+    return user ? user : null
+}

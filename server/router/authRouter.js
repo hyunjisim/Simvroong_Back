@@ -18,7 +18,7 @@ router.post('/login', authController.login)
 router.post('/findId', authController.findId)
 
 // find-pw
-router.post('/findPw', authController.findPw)
+// router.post('/findPw', authController.findPw)
 
 // login-stay
 // router.get('/me', isAuth, authController.me)
