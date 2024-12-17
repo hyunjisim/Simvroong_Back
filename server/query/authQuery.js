@@ -15,7 +15,7 @@ const UserSchema = new mongoose.Schema({
     isPartner: { type: Boolean, default: false },
     termsAgreed: {
         // 약관 동의 정보
-        requiredTerms: { type: Boolean, default: true}, // 필수 약관 동의
+        requiredTerms: { type: Boolean, default: true }, // 필수 약관 동의
         optionalTerms: { type: Boolean, default: false } // 선택 약관 동의
     },
     createdAt: { type: Date, default: Date.now }, // 가입 일시
@@ -38,19 +38,23 @@ const User = mongoose.model('User', UserSchema)
 const UserVerify = mongoose.model('Verify', User_verify_Schema)
 
 export async function createUser(user) {
+    deleteVerify(user.phone.number)
     return new User(user).save().then(data => data._id)
 }
 
 export async function setCode(phoneNumber, code) {
+    const reSend = await UserVerify.findOne({ 'phone.number': phoneNumber })
+    if (reSend) {
+        deleteVerify(phoneNumber)
+    }
     const result = await UserVerify.create({ 'phone.number': phoneNumber, 'phone.verificationCode': code })
 
     // 결과에 따른 메시지 출력
     if (result.matchedCount === 0) {
-        console.error(`No user found with phone number: ${phoneNumber}`)
-        return { success: false, message: 'No user found with the provided phone number.' }
+        return { success: false, message: '인증번호 전송 실패' }
     }
 
-    return { success: true, message: 'Verification code updated successfully.' }
+    return { success: true, message: '인증번호가 전송되었습니다' }
 }
 
 export async function getCode(phoneNumber) {
@@ -72,7 +76,7 @@ export async function deleteVerify(phoneNumber) {
     return UserVerify.findByIdAndDelete(user._id)
 }
 
-export async function findUserById(userid) {
-    const user = await User.findOne({ 'userId' : userid})
+export async function findUserById(userId) {
+    const user = await User.findOne({ userId: userId })
     return user ? user : null
 }
