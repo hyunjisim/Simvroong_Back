@@ -9,10 +9,18 @@ import authRoutes from './server/router/authRouter.js'
 import { config } from './server/config/config.js'
 // import { db } from './server/config/database.js'
 import connectDB from './server/query/connectDBQuery.js'
+import cors from 'cors'
 
 const app = express()
 
-app.use(bodyParser.json())
+app.use(
+    cors({
+        origin: '*',
+        credentials: true
+    })
+)
+
+app.use(express.json())
 
 // app.use('/main', mainRoutes)
 // app.use('/lists', listsRoutes)
