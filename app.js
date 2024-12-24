@@ -3,7 +3,7 @@ import bodyParser from 'body-parser'
 // import mainRoutes from './server/router/mainRouter.js'
 // import listsRoutes from './server/router/listsRouter.js'
 // import chatRoutes from './server/router/chatRouter.js'
-// import profileRoutes from './server/router/profileRouter.js'
+import profileRoutes from './server/router/profileRouter.js'
 import authRoutes from './server/router/authRouter.js'
 // import partnershipRoutes from './server/router/partnershipRouter.js'
 import { config } from './server/config/config.js'
@@ -24,9 +24,9 @@ app.use(express.json())
 
 // app.use('/main', mainRoutes)
 // app.use('/lists', listsRoutes)
-// app.use('/chat', chatRoutes)
-// app.use('/profile', profileRoutes)
+// app.use('/chat', chatRoutes) 
 app.use('/auth', authRoutes)
+app.use('/profile', profileRoutes)
 // app.use('/partnership', partnershipRoutes)
 
 connectDB()

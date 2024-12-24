@@ -12,6 +12,18 @@ async function createJwtToken(id) {
 export async function registerUser(req, res, next) {
     const { nickname, userId, password, name, birth, gender, phoneNumber, agreements } = req.body
 
+    const isUserId = await authRepository.findUserById(userId)
+
+    if (isUserId) {
+        return res.status(400).send('이미 존재하는 아이디입니다')
+    }
+
+    const isNickname = await authRepository.duplicatedNickname(nickname)
+
+    if (isNickname) {
+        return res.status(400).send('사용중이 닉네임입니다.')
+    }
+
     const isChecked = await authRepository.checkVerified(phoneNumber)
 
     if (!isChecked) {
@@ -33,7 +45,7 @@ export async function registerUser(req, res, next) {
         },
         termsAgreed: {
             requiredTerms: true,
-            optionalTerms: false
+            optionalTerms: agreements.check4
         }
     })
     return res.status(201).send({ message: '회원가입 성공!' })
@@ -80,7 +92,8 @@ export async function login(req, res, next) {
     }
 
     // 사용자가 입력한 비밀번호와 DB에 저장되어있는 hash비밀번호를 decode 해서 비교
-    const PW_CHECK = await bcrypt.compare(password, user.password)
+    const PW_CHECK = password.length === 7 ? user.password === password : await bcrypt.compare(password, user.password)
+
     // 비밀번호 체크
     if (!PW_CHECK) {
         return res.status(401).json({ message: '아이디 또는 비밀번호 확인' })
@@ -92,20 +105,46 @@ export async function login(req, res, next) {
 }
 
 export async function findId(req, res, next) {
-    const { name, hp } = req.body
+    const { name, phoneNumber } = req.body
 
-    const hpCheck = await sendTokenToSMS(hp)
+    const user = await authRepository.findIdByPhoneNumber(name, phoneNumber)
 
-    if (!hpCheck) {
-        return res.status(401).send('실패하셨습니다')
-    }
-
-    const user = await authRepository.findIdByName(name)
     if (!user) {
         return res.status(401).send('등록된 아이디 없음')
     }
 
-    return res.status(201).json({ userid: user })
+    return res.status(201).json({ user: user })
+}
+
+export async function findPw(req, res, next) {
+    const { userId, phoneNumber } = req.body
+
+    const user = await authRepository.findPwByInfo(userId, phoneNumber)
+
+    if (!user) {
+        return res.status(401).send('등록된 아이디 없음')
+    }
+
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    const special = '@$!%*?&'
+
+    let tempPw = ''
+
+    for (let i = 0; i < 7; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length)
+        tempPw += characters[randomIndex]
+        if (i == 4) {
+            for (let j = 0; j < 2; j++) {
+                const randomIndex = Math.floor(Math.random() * special.length)
+                tempPw += special[randomIndex]
+            }
+            break
+        }
+    }
+
+    const updatedUserPw = await authRepository.updatePassword(userId, tempPw)
+
+    return res.status(201).json({ tempPassword: updatedUserPw.password })
 }
 
 export async function verify(req, res, next) {
