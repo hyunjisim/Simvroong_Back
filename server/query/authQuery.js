@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongoose, { mongo } from 'mongoose'
 import { virtualId } from './connectDBQuery.js'
 
 const UserSchema = new mongoose.Schema({
@@ -6,6 +6,7 @@ const UserSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true }, // 아이디
     password: { type: String, required: true }, // 비밀번호 (해시)
     name: { type: String, required: true }, // 이름
+    photoUrl: { type: String, default: '' },
     birth: { type: Date, required: true }, // 생년월일
     gender: { type: String, enum: ['male', 'female'], required: true }, // 성별
     phone: {
@@ -19,7 +20,9 @@ const UserSchema = new mongoose.Schema({
         optionalTerms: { type: Boolean, default: false } // 선택 약관 동의
     },
     createdAt: { type: Date, default: Date.now }, // 가입 일시
-    updatedAt: { type: Date, default: Date.now } // 마지막 수정 일시
+    updatedAt: { type: Date, default: Date.now }, // 마지막 수정 일시
+    isBlocked: { type: Boolean, default: false }, // 사용자의 차단 상태
+    blockedAt: { type: Date, default: null } // 차단된 날짜
 })
 
 const User_verify_Schema = new mongoose.Schema({
@@ -78,5 +81,44 @@ export async function deleteVerify(phoneNumber) {
 
 export async function findUserById(userId) {
     const user = await User.findOne({ userId: userId })
+    return user ? user : null
+}
+export async function duplicatedNickname(nickname, userId) {
+    const isDuplicate = await User.findOne({ nickname, userId: { $ne: userId }})
+    return isDuplicate ? ture : false
+}
+
+export async function findIdByPhoneNumber(name, phoneNumber) {
+    const user = await User.findOne({
+        name: name,
+        'phone.number': phoneNumber
+    })
+    if (user) {
+        deleteVerify(phoneNumber)
+    }
+    return user ? user : null
+}
+
+export async function findPwByInfo(userId, phoneNumber) {
+    const user = await findUserById(userId)
+    if (user) {
+        deleteVerify(phoneNumber)
+    }
+    return user ? user : null
+}
+
+export async function updatePassword(userId, newPw) {
+    const newPwUser = await User.findOneAndUpdate(
+        { userId: userId },
+        { $set: { password: newPw } },
+        { new: true }
+    )
+
+    
+    return newPwUser ? newPwUser : null
+}
+
+export async function findUserbyToken(decodedToken) {
+    const user = await User.findById(String(decodedToken))
     return user ? user : null
 }
