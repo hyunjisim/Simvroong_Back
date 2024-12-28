@@ -1,44 +1,5 @@
-import mongoose, { mongo } from 'mongoose'
-import { virtualId } from './connectDBQuery.js'
-
-const UserSchema = new mongoose.Schema({
-    nickname: { type: String, required: true, unique: true }, // 닉네임
-    userId: { type: String, required: true, unique: true }, // 아이디
-    password: { type: String, required: true }, // 비밀번호 (해시)
-    name: { type: String, required: true }, // 이름
-    photoUrl: { type: String, default: '' },
-    birth: { type: Date, required: true }, // 생년월일
-    gender: { type: String, enum: ['male', 'female'], required: true }, // 성별
-    phone: {
-        number: { type: String, required: true, unique: true }, // 휴대폰 번호
-        verified: { type: Boolean, default: false } // 인증 여부
-    },
-    isPartner: { type: Boolean, default: false },
-    termsAgreed: {
-        // 약관 동의 정보
-        requiredTerms: { type: Boolean, default: true }, // 필수 약관 동의
-        optionalTerms: { type: Boolean, default: false } // 선택 약관 동의
-    },
-    createdAt: { type: Date, default: Date.now }, // 가입 일시
-    updatedAt: { type: Date, default: Date.now }, // 마지막 수정 일시
-    isBlocked: { type: Boolean, default: false }, // 사용자의 차단 상태
-    blockedAt: { type: Date, default: null } // 차단된 날짜
-})
-
-const User_verify_Schema = new mongoose.Schema({
-    phone: {
-        number: { type: String, required: true }, // 휴대폰 번호
-        verified: { type: Boolean, default: false },
-        verificationCode: { type: String } // 발송된 인증번호
-    }
-})
-
-virtualId(User_verify_Schema)
-virtualId(UserSchema)
-
-// User모델 생성
-const User = mongoose.model('User', UserSchema)
-const UserVerify = mongoose.model('Verify', User_verify_Schema)
+import User from '../schema/UserSchema.js'
+import UserVerify from '../schema/userVerifySchema.js'
 
 export async function createUser(user) {
     deleteVerify(user.phone.number)
@@ -83,8 +44,9 @@ export async function findUserById(userId) {
     const user = await User.findOne({ userId: userId })
     return user ? user : null
 }
+
 export async function duplicatedNickname(nickname, userId) {
-    const isDuplicate = await User.findOne({ nickname, userId: { $ne: userId }})
+    const isDuplicate = await User.findOne({ nickname, userId: { $ne: userId } })
     return isDuplicate ? ture : false
 }
 
@@ -108,17 +70,17 @@ export async function findPwByInfo(userId, phoneNumber) {
 }
 
 export async function updatePassword(userId, newPw) {
-    const newPwUser = await User.findOneAndUpdate(
-        { userId: userId },
-        { $set: { password: newPw } },
-        { new: true }
-    )
+    const newPwUser = await User.findOneAndUpdate({ userId: userId }, { $set: { password: newPw } }, { new: true })
 
-    
     return newPwUser ? newPwUser : null
 }
 
 export async function findUserbyToken(decodedToken) {
     const user = await User.findById(String(decodedToken))
     return user ? user : null
+}
+
+export async function modifyUser(newNickname, userId, newPhoneNumber) {
+    const modifiedUser = await User.findOneAndUpdate({ userId: userId }, { $set: { nickname: newNickname, 'phone.number': newPhoneNumber } }, { new: true })
+    return modifiedUser
 }
