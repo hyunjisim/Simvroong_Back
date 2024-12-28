@@ -82,7 +82,6 @@ export async function verifyCode(req, res, next) {
 }
 
 // LoginPage
-
 export async function login(req, res, next) {
     const { userId, password } = req.body
     // 아이디 중복 체크
