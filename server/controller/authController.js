@@ -45,7 +45,7 @@ export async function registerUser(req, res, next) {
         },
         termsAgreed: {
             requiredTerms: true,
-            optionalTerms: agreements.check4
+            optionalTerms: true //agreements.check4
         }
     })
     return res.status(201).send({ message: '회원가입 성공!' })
@@ -75,14 +75,13 @@ export async function verifyCode(req, res, next) {
     const isVerified = await authRepository.getCode(phoneNumber)
 
     if (code !== isVerified) {
-        return res.status(401).send('등록된 아이디 없음')
+        return res.status(401).send('인증번호가 틀렸습니다')
     }
 
     return res.status(204).send(`존재하는 유저 : 인증번호 (${isVerified})`)
 }
 
 // LoginPage
-
 export async function login(req, res, next) {
     const { userId, password } = req.body
     // 아이디 중복 체크

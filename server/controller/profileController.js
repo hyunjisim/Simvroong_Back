@@ -1,10 +1,9 @@
 import * as authRepository from '../query/authQuery.js'
 import * as bcrypt from 'bcrypt'
-// import jwt from 'jsonwebtoken'
-// import { config } from '../config/config.js'
-// import { sendTokenToSMS } from '../service/smsService.js'
-import * as authController from './authController.js'
+// import * as authController from './authController.js'
+import { config } from '../config/config.js'
 
+// 개인정보 조회, 수정 창 들어가기
 export async function userInfo(req, res, next) {
     const { password } = req.body
     const docodedToken = req.mongo_id
@@ -24,46 +23,40 @@ export async function userInfo(req, res, next) {
     return res.sendStatus(200)
 }
 
+// 개인정보 수정부분
 export async function modifyUserInfo(req, res, next) {
-    const { decodeToken } = req.mongo_id
-    const { nickname, userId, phoneNumber } = req.body
+    const decodeToken = req.mongo_id
+    const { nickname, phoneNumber } = req.body
 
-    await authRepository.modifyUser(nickname, userId, phoneNumber)
-}
+    try {
+        const user = await authRepository.findUserbyToken(decodeToken)
 
-// export async function updatePhoto(req, res, next) {
-//     const { nickaname } = req.body
+        if (!user) {
+            return res.status(404).send('User not found')
+        }
 
-// }
+        const verifiedNickname = await authRepository.duplicatedNickname(nickname, user.userId)
 
-export async function updateNickname(req, res, next) {
-    const { nickname, userId } = req.body
+        if (verifiedNickname) {
+            return res.status(400).send('이미 사용중인 닉네임입니다.')
+        }
 
-    const isNickname = await authRepository.duplicatedNickname(nickname, userId)
+        const isModified = await authRepository.modifyUser(nickname, user.userId, phoneNumber)
 
-    if (isNickname) {
-        return res.status(400).send('이미 존재하는 닉네임입니다')
+        if (!isModified) {
+            return res.status(400).send('수정을 실패하였습니다.')
+        }
+
+        return res.status(200).send('수정을 성공하였습니다!')
+    } catch (error) {
+        console.error('Error in modifyUserInfo:', error)
+        return res.status(500).send('Internal Server Error')
     }
-
-    return res.status(200).send('사용 가능한 닉네임입니다.')
-}
-
-// auth에서 만들어진 인증번호 전송, 확인부분 사용 이후
-export async function updatePhoneNumber(req, res, next) {
-    const { phoneNumber } = req.body
-
-    const isVerified = await authRepository.checkVerified(phoneNumber)
-
-    if (!isVerified) {
-        return res.status(400).send('인증에 실패하셨습니다.')
-    }
-
-    return res.status(200).send('핸드폰 인증 완료')
 }
 
 export async function updatePassword(req, res, next) {
     const { nowPassword, newPassword } = req.body
-    const { decodeToken } = req.mongo_id
+    const decodeToken = req.mongo_id
 
     const user = await authRepository.findUserbyToken(decodeToken)
     if (!user) {
