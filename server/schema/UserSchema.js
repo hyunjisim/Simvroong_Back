@@ -6,7 +6,7 @@ const UserSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true }, // 아이디
     password: { type: String, required: true }, // 비밀번호 (해시)
     name: { type: String, required: true }, // 이름
-    photoUrl: { type: String, default: '' },
+    photoUrl: { type: String, default: 'https://res.cloudinary.com/dxvt4iugh/image/upload/v1735498268/aa_qwvdo9.png' },
     birth: { type: Date, required: true }, // 생년월일
     gender: { type: String, enum: ['male', 'female'], required: true }, // 성별
     phone: {

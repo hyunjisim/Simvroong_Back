@@ -1,5 +1,6 @@
 import User from '../schema/UserSchema.js'
 import UserVerify from '../schema/userVerifySchema.js'
+import { v2 as cloudinary } from 'cloudinary'
 
 export async function createUser(user) {
     deleteVerify(user.phone.number)
@@ -31,8 +32,12 @@ export async function getCode(phoneNumber) {
 }
 
 export async function checkVerified(phoneNumber) {
-    const user = await UserVerify.findOne({ 'phone.number': phoneNumber })
-    return user.phone.verified ? user.phone.verified : false
+    try {
+        const user = await UserVerify.findOne({ 'phone.number': phoneNumber })
+        return user.phone.verified ? user.phone.verified : false
+    } catch {
+        return false
+    }
 }
 
 export async function deleteVerify(phoneNumber) {
@@ -81,6 +86,29 @@ export async function findUserbyToken(decodedToken) {
 }
 
 export async function modifyUser(newNickname, userId, newPhoneNumber) {
+    const user = await User.findOne({ userId: userId })
+    if (!newNickname && newPhoneNumber) {
+        const modifiedUser = await User.findOneAndUpdate({ userId: userId }, { $set: { nickname: user.nickname, 'phone.number': newPhoneNumber } }, { new: true })
+        return modifiedUser
+    } else if (newNickname && !newPhoneNumber) {
+        const modifiedUser = await User.findOneAndUpdate({ userId: userId }, { $set: { nickname: newNickname, 'phone.number': user.phone.number } }, { new: true })
+        return modifiedUser
+    } else if (!newNickname && !newPhoneNumber) {
+        return true
+    }
     const modifiedUser = await User.findOneAndUpdate({ userId: userId }, { $set: { nickname: newNickname, 'phone.number': newPhoneNumber } }, { new: true })
     return modifiedUser
+}
+
+export async function updateProfileImage(userId, imageUrl) {
+    const user = await User.findById(userId)
+
+    // 기존 이미지 삭제 (Cloudinary)
+    if (user.photoUrl) {
+        const publicId = user.photoUrl.split('/').pop().split('.')[0]
+        await cloudinary.uploader.destroy(publicId)
+    }
+
+    // 새로운 URL로 업데이트
+    return User.findByIdAndUpdate(userId, { $set: { photoUrl: imageUrl } }, { new: true })
 }
