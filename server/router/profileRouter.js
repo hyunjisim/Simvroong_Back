@@ -7,10 +7,11 @@ const router = express.Router()
 // router.get('/viewUser/:id')
 
 // view-my-userInfo
+router.get('/getNickname', isAuth, profileController.getUserData)
 router.post('/userInfo', isAuth, profileController.userInfo)
 router.put('/userInfo/modifyInfo', isAuth, profileController.modifyUserInfo)
-// router.put('/userInfo/updatePhoto', profileController.updatePhoto)
 router.put('/updatePassword', isAuth, profileController.updatePassword)
+router.put('/upload', isAuth, profileController.updateImg)
 
 // router.put('/:token', isAuth, profileController.updateUserInfo)
 
