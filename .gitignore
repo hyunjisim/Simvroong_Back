@@ -1,6 +1,5 @@
 node_modules
 .env
 .gitignore
-socket/
 utils/
 .gitignore
