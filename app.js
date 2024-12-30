@@ -1,17 +1,22 @@
 import express from 'express'
-import bodyParser from 'body-parser'
-// import mainRoutes from './server/router/mainRouter.js'
-// import listsRoutes from './server/router/listsRouter.js'
-// import chatRoutes from './server/router/chatRouter.js'
 import profileRoutes from './server/router/profileRouter.js'
 import authRoutes from './server/router/authRouter.js'
-// import partnershipRoutes from './server/router/partnershipRouter.js'
 import { config } from './server/config/config.js'
-// import { db } from './server/config/database.js'
 import connectDB from './server/query/connectDBQuery.js'
 import cors from 'cors'
+import path from "path";
+import { fileURLToPath } from "url";
+
+import PartnerRouter from './server/router/PartnershipRouter.js'
 
 const app = express()
+
+// ES Module 환경에서 __dirname 대체 코드
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// 정적 파일 경로 설정
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use(
     cors({
@@ -22,15 +27,12 @@ app.use(
 
 app.use(express.json())
 
-// app.use('/main', mainRoutes)
-// app.use('/lists', listsRoutes)
-// app.use('/chat', chatRoutes) 
 app.use('/auth', authRoutes)
 app.use('/profile', profileRoutes)
-// app.use('/partnership', partnershipRoutes)
+app.use("/partnership", PartnerRouter)
 
 connectDB()
     .then(() => {
-        app.listen(config.host.port)
+        const server = app.listen(config.host.port)
     })
     .catch(console.log)
