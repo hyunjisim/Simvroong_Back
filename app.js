@@ -29,6 +29,7 @@ app.use(express.json())
 
 app.use('/auth', authRoutes)
 app.use('/profile', profileRoutes)
+
 app.use("/partnership", PartnerRouter)
 
 connectDB()
