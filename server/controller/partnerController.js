@@ -3,6 +3,7 @@ import Partner from '../schema/PartnerSchema.js'; // Partnership 모델 가져�
 import User from "../schema/UserSchema.js";
 import calculateAgeGroup from "../middleware/partnershipMiddleware.js";
 
+
 // 1단계: 주민등록번호, 신분증사진, 데이터 저장
 export const partnerController = {
     applyPartnership1: async (req, res) => {
@@ -190,7 +191,7 @@ export const partnerController = {
         }
     },
 
-    // getStep 5: 파트너 데이터 가져오기
+    // getStep 5: 파트너,유저 데이터 가져오기
     getPartnershipStep5: async (req, res) => {
         const { mongo_id } = req;
         try {
