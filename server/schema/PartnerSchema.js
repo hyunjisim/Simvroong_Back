@@ -19,13 +19,14 @@ const PartnerSchema = new mongoose.Schema({
     requestCount: { type: Number, default: 0 }, // 요청 수
     reviewCount: { type: Number, default: 0 }, // 리뷰 수
     bankAccount: {
-        bank: { type: mongoose.Schema.Types.ObjectId, ref: 'Bank' }, // 은행 참조
+        bankName: { type: String, default: '' }, // 은행
         accountNumber: { type: String, default: '' }, // 계좌 번호
         accountHolder: { type: String, default: '' } // 계좌 주인 이름
     },
     partnerStatus: {
         isPartner: { type: Boolean, default: false }, // 파트너 여부
-        status: { type: String, default: 'pending' } // 현재 상태
+        status: { type: String, default: 'before join' } // 현재 상태
+        //before join,pending,complete세개로 나뉨 관리자 페이지 없어서 pending,complete이 두개만 일단 사용
     },
     personalInfo: {
         hashedResidentId: { type: String }, // 주민등록번호 해시값

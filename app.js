@@ -13,6 +13,7 @@ import { initSocket } from './server/socket/socket.js'
 import path from "path";
 import { fileURLToPath } from "url";
 import PartnerRouter from './server/router/PartnershipRouter.js'
+import likeListRoutes from './server/router/likeListsRouter.js'
 
 const app = express()
 
@@ -20,8 +21,6 @@ const app = express()
 const server = http.createServer(app)
 
 initSocket(server)
-
-const app = express()
 
 // ES Module 환경에서 __dirname 대체 코드
 const __filename = fileURLToPath(import.meta.url);
@@ -45,6 +44,7 @@ app.use('/order', orderRoutes)
 app.use('/auth', authRoutes)
 app.use('/profile', profileRoutes)
 app.use('/chat', chatRoutes)
+app.use('/likelists', likeListRoutes)
 
 app.use("/partnership", PartnerRouter)
 

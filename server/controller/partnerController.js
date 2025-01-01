@@ -49,6 +49,10 @@ export const partnerController = {
                         hashedResidentId: hashedSSN,
                         name: name,
                     },
+                    partnerStatus:{
+                        isPartner:false,
+                        status:"pending",
+                    },
                     IDPhotoUrl: idPhotoPath,
                 });
             } else {
@@ -56,6 +60,8 @@ export const partnerController = {
                 partner.personalInfo.hashedResidentId = hashedSSN;
                 partner.personalInfo.name = name;
                 partner.personalInfo.IDPhotoUrl = idPhotoPath;
+                partner.partnerStatus.isPartner = false
+                partner.partnerStatus.status = 'pending'
                 partner.updatedAt = new Date();
             }
 
@@ -97,6 +103,8 @@ export const partnerController = {
             } else {
                 // 문서가 있으면 업데이트
                 partner.facePhotoUrl = absolutePhotoUrl; // 절대 URL 저장
+                partner.partnerStatus.isPartner = false
+                partner.partnerStatus.status = 'pending'
                 partner.updatedAt = new Date();
             }
             console.log("저장 직전 URL:", partner.facePhotoUrl);
@@ -144,6 +152,8 @@ export const partnerController = {
                     accountNumber,
                     accountHolder,
                 };
+                partner.partnerStatus.isPartner = false
+                partner.partnerStatus.status = 'pending'
                 partner.updatedAt = new Date();
             }
 
@@ -179,6 +189,8 @@ export const partnerController = {
             } else {
                 // 심부름 종류 저장
                 partner.servicesOffered = services;
+                partner.partnerStatus.isPartner = false
+                partner.partnerStatus.status = 'pending'
                 partner.updatedAt = new Date();
             }
 
@@ -245,6 +257,8 @@ export const partnerController = {
                 // 업데이트 가능한 필드
                 partner.profile.bio = bio || partner.profile.bio;
                 partner.transportation = transportation || partner.transportation;
+                partner.partnerStatus.isPartner = true
+                partner.partnerStatus.status = 'complete'
                 partner.updatedAt = new Date();
             }
 
@@ -257,3 +271,49 @@ export const partnerController = {
         }
     },
 };
+
+// 내정보와 프로필상세창에 쓰일 get
+export async function getpartnerinfo(req, res, next){
+    try {
+        const mongo_id = req.mongo_id;
+        // User와 Partner 데이터를 가져옴
+        const user = await User.findById(mongo_id);
+        const partner = await Partner.findOne({ userId: mongo_id });
+
+        if (!user) {
+            return res.status(404).json({ error: "유저 데이터를 찾을 수 없습니다." });
+        }
+        if (!partner) {
+            return res.status(404).json({ error: "파트너 데이터를 찾을 수 없습니다." });
+        }
+
+        // 응답 데이터 구성
+        const nickname = user.nickname || "닉네임 없음";
+        const gender = user.gender === "male" ? "남성" : user.gender === "female" ? "여성" : "성별 없음";
+        const ageGroup = calculateAgeGroup(user.birth);
+        const profileImage = partner?.facePhotoUrl
+        ? (partner.facePhotoUrl.startsWith("http") ? partner.facePhotoUrl : `http://localhost:8080/${partner.facePhotoUrl}`)
+        : user.photoUrl
+        ? `http://localhost:8080/${user.photoUrl}`
+        : "프로필 이미지 없음";
+        const errands = partner?.servicesOffered || [];
+        const bio = partner?.profile.bio || [];
+        const transportation = partner?.transportation || [];
+        const partnerStatus = partner?.partnerStatus.status || "before join";
+
+        res.json({
+            nickname,
+            gender,
+            ageGroup,
+            profileImage,
+            errands,
+            bio,
+            transportation,
+            partnerStatus,
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "서버 오류" });
+    }
+}

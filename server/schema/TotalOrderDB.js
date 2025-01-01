@@ -51,15 +51,14 @@ const OrderApplicationSchema = new mongoose.Schema({
     },
     QnA: [ // Q&A 필드
         {
-            _id: false,
             question: {
-                user_Id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+                userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
                 content: { type: String },
                 createdAt: { type: Date, default: Date.now }
             },
             answers: [
                 {
-                    user_Id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+                    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
                     content: { type: String },
                     isRequester: { type: Boolean, default: false },
                     createdAt: { type: Date, default: Date.now }
