@@ -1,55 +1,74 @@
-import * as chatRepository from '../query/chatQuery.js'
-import * as authRepository from '../query/authQuery.js'
+import * as chatRepository from '../query/chatQuery.js';
+import { getSocketIo } from '../socket/socket.js';
 
+// 채팅 리스트 조회
 export async function getChatList(req, res) {
-    const userId = req.mongo_id // 로그인한 사용자 ID
-
+    const userId = req.mongo_id; // 로그인한 사용자 ID
     try {
-        const chatList = await chatRepository.getChatList(userId)
-        res.status(200).json(chatList)
+        const chatList = await chatRepository.getChatList(userId);
+        res.status(200).json(chatList);
     } catch (error) {
-        res.status(500).json({ message: '채팅 리스트 조회 실패', error })
+        res.status(500).json({ message: '채팅 리스트 조회 실패', error });
     }
 }
 
-// 1대1 채팅 내역 조회
-export async function getChatMessages(req, res) {
-    const fromUserId = req.mongo_id // 현재 로그인한 사용자 ID (isAuth에서 추출)
-    const toUserId = req.params.userId // 상대방 사용자 ID (URL에서 추출)
-
-    try {
-        const messages = await chatRepository.getMessages(fromUserId, toUserId)
-        res.status(200).json(messages)
-    } catch (error) {
-        res.status(500).json({ message: '채팅 내역 조회 실패', error })
-    }
-}
-
-// 읽음 처리
-export async function markMessagesAsRead(req, res) {
-    const fromUserId = req.params.userId // 메시지를 보낸 사용자 ID
-    const toUserId = req.mongo_id // 현재 로그인한 사용자 ID
-
-    try {
-        await chatRepository.markAsRead(fromUserId, toUserId)
-        res.status(200).json({ message: '읽음 처리 완료' })
-    } catch (error) {
-        res.status(500).json({ message: '읽음 처리 실패', error })
-    }
-}
-
-// 새 메시지 전송
+// 메시지 전송
 export async function sendMessage(req, res) {
-    const fromUserId = req.mongo_id // 현재 로그인한 사용자 ID
-    const toUserId = req.params.userId // 메시지를 받을 사용자 ID
-    const { message } = req.body // 메시지 내용
+    const { userId: toUserId, roomId } = req.params; // URL에서 상대방 ID와 방 ID 추출
+    const { message } = req.body;
+    const fromUserId = req.mongo_id; // 인증 미들웨어에서 가져온 사용자 ID
 
     try {
-        const user = await authRepository.findUserById(toUserId)
+        // 메시지 저장
+        const savedMessage = await chatRepository.saveMessage({
+            fromUserId,
+            toUserId,
+            roomId,
+            message,
+        });
 
-        const newMessage = await chatRepository.saveMessage({ fromUserId, toUserId: user._id, message })
-        res.status(201).json(newMessage)
+        // 실시간 메시지 전송
+        const io = getSocketIo();
+        const toSocketId = io.connectedUsers.get(toUserId); // 상대방 소켓 ID 가져오기
+        console.log(toSocketId);
+
+        if (toSocketId) {
+            io.to(roomId).emit('receiveMessage', savedMessage);
+        }
+
+        res.status(201).json({ success: true, message: savedMessage });
     } catch (error) {
-        res.status(500).json({ message: '메시지 전송 실패', error })
+        console.error(error);
+        res.status(500).json({ success: false, error: '메시지 전송 실패' });
     }
 }
+
+// 채팅 메시지 조회
+export async function getChatMessages(req, res) {
+    const { userId: chatPartnerId, roomId } = req.params;
+    const userId = req.mongo_id; // 인증된 사용자 ID
+
+    try {
+        const messages = await chatRepository.getMessagesByUser(userId, chatPartnerId);
+        res.status(200).json({ success: true, messages });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: '메시지 조회 실패' });
+    }
+}
+
+// 메시지 읽음 처리
+export async function markMessagesAsRead(req, res) {
+    const { userId: fromUserId } = req.params; // 상대방 ID
+    const toUserId = req.mongo_id; // 인증된 사용자 ID
+
+    try {
+        await chatRepository.markMessagesAsRead(toUserId, fromUserId);
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: '읽음 처리 실패' });
+    }
+}
+
+

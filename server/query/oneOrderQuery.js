@@ -76,7 +76,7 @@ export async function toggleFavorite(user_Id, taskId, isFavorite) {
 }
 
 // 질문 추가
-export async function addQuestion(taskId, questionData, user_Id) {
+export async function addQuestion(taskId, questionData, user_Id, nickname, photoUrl) {
     try {
         if (!user_Id) {
             throw new Error('addQuestion: user_Id가 정의되지 않았습니다.');
@@ -87,6 +87,8 @@ export async function addQuestion(taskId, questionData, user_Id) {
         }
 
         const newQuestion = {
+            photoUrl,
+            nickname,
             userId: user_Id,
             content: questionData.content,
             createdAt: new Date(),
@@ -189,7 +191,7 @@ export async function deleteQuestion(taskId, questionId, user_Id) {
 }
 
 // 답변 추가
-export async function addAnswer(taskId, questionId, answerData, user_Id) {
+export async function addAnswer(taskId, questionId, answerData, user_Id, nickname, photoUrl) {
     try {
         const order = await Order.findOne({ taskId });
         if (!order) throw new Error('Order not found.');
@@ -199,6 +201,8 @@ export async function addAnswer(taskId, questionId, answerData, user_Id) {
 
         // Add the reply to the answers array
         const newAnswer = {
+            photoUrl,
+            nickname,
             userId: user_Id,
             content: answerData.content,
             isRequester: answerData.isRequester || false,

@@ -152,11 +152,3 @@ export async function verify(req, res, next) {
         res.status(200).json(token)
     }
 }
-
-// export async function me(req, res, next) {
-//     const user = await authRepository.findById(req.userid)
-//     if (!user) {
-//         return res.status(404).json({ message: '사용자가 없음' })
-//     }
-//     res.status(200).json({ token: req.token, username: user.username })
-// }

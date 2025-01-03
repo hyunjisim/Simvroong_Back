@@ -226,6 +226,7 @@ export const partnerController = {
             : "프로필 이미지 없음";
             const errands = partner?.servicesOffered || [];
 
+
             res.json({
                 nickname,
                 gender,
@@ -263,6 +264,8 @@ export const partnerController = {
             }
 
             await partner.save();
+
+            await User.findByIdAndUpdate(mongo_id, { isPartner: true})
 
             res.status(200).json({ message: "파트너십 상세 정보가 업데이트되었습니다.", partner });
         } catch (err) {
