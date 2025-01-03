@@ -15,4 +15,8 @@ router.post('/:userId/read', isAuth, chatController.markMessagesAsRead)
 // 새 메시지 전송
 router.post('/:userId', isAuth, chatController.sendMessage)
 
+// test
+// 사용자 간 메시지 조회 API
+// router.get('/:fromUserId/:toUserId', getMessages);
+
 export default router

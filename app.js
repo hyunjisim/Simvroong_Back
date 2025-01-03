@@ -3,7 +3,6 @@ import profileRoutes from './server/router/profileRouter.js'
 import authRoutes from './server/router/authRouter.js'
 import chatRoutes from './server/router/chatRouter.js'
 import mainRoutes from './server/router/mainRouter.js'
-import listsRoutes from './server/router/listsRouter.js'
 import orderRoutes from './server/router/orderRouter.js'
 import { config } from './server/config/config.js'
 import connectDB from './server/query/connectDBQuery.js'
@@ -13,11 +12,17 @@ import { initSocket } from './server/socket/socket.js'
 import path from "path";
 import { fileURLToPath } from "url";
 import PartnerRouter from './server/router/PartnershipRouter.js'
+import likeListRoutes from './server/router/likeListsRouter.js'
+import matchRoutes from './server/router/matchRouter.js'
+import listRoutes from './server/router/useListRouter.js'
+import searchRoutes from './server/router/searchRouter.js'
 
 const app = express()
 
+
 // http 서버 생성
 const server = http.createServer(app)
+// const io = new Server(server);
 
 initSocket(server)
 
@@ -37,14 +42,16 @@ app.use(
 
 app.use(express.json())
 
+app.use('/list', listRoutes)
 app.use('/main', mainRoutes)
-app.use('/lists', listsRoutes)
 app.use('/order', orderRoutes)
 app.use('/auth', authRoutes)
 app.use('/profile', profileRoutes)
 app.use('/chat', chatRoutes)
-
+app.use('/likelists', likeListRoutes)
+app.use('/check', matchRoutes)
 app.use("/partnership", PartnerRouter)
+app.use("/search", searchRoutes)
 
 connectDB()
     .then(() => {
@@ -53,3 +60,5 @@ connectDB()
         })
     })
     .catch(console.log)
+
+initSocket(server);

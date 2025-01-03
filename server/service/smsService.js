@@ -1,13 +1,9 @@
 import coolsms from 'coolsms-node-sdk'
 import { config } from '../config/config.js'
-
 export async function sendTokenToSMS(phone) {
     const code = Math.floor(1000 + Math.random() * 9000)
-
     const mysms = coolsms.default
-
     const messageService = new mysms(config.api.apiKey, config.api.apiSecretKey)
-
     try {
         const result = await messageService.sendOne({
             to: phone,

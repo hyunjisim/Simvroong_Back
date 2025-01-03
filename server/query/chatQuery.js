@@ -1,78 +1,98 @@
-import Chat from '../schema/ChatSchema.js'
+import Chat from '../schema/ChatSchema.js';
+import User from '../schema/UserSchema.js';
 
+// 채팅 리스트 조회
 export async function getChatList(userId) {
     return await Chat.aggregate([
         {
             $match: {
                 $or: [
                     { fromUserId: userId }, // 내가 보낸 메시지
-                    { toUserId: userId } // 내가 받은 메시지
-                ]
-            }
+                    { toUserId: userId },   // 내가 받은 메시지
+                ],
+            },
         },
         {
             $group: {
                 _id: {
-                    // 사용자별로 그룹화
                     partnerId: {
                         $cond: {
                             if: { $eq: ['$fromUserId', userId] },
                             then: '$toUserId',
-                            else: '$fromUserId'
-                        }
-                    }
+                            else: '$fromUserId',
+                        },
+                    },
                 },
                 lastMessage: { $last: '$message' }, // 마지막 메시지
                 unreadCount: {
                     $sum: {
-                        $cond: [{ $and: [{ $eq: ['$toUserId', userId] }, { $eq: ['$isRead', false] }] }, 1, 0]
-                    }
+                        $cond: [
+                            { $and: [{ $eq: ['$toUserId', userId] }, { $eq: ['$isRead', false] }] },
+                            1,
+                            0,
+                        ],
+                    },
                 },
-                updatedAt: { $last: '$createdAt' } // 최신 메시지 시간
-            }
+                updatedAt: { $last: '$createdAt' }, // 최신 메시지 시간
+            },
         },
-        {
-            $sort: { updatedAt: -1 } // 최신 메시지 기준 정렬
-        }
-    ])
+        { $sort: { updatedAt: -1 } }, // 최신 메시지 기준 정렬
+    ]);
 }
 
 // 메시지 저장
-export async function saveMessage({ fromUserId, toUserId, message }) {
-    const newMessage = new Chat({
+export async function saveMessage({ fromUserId, toUserId, taskId, message }) {
+    const chatMessage = new Chat({
         fromUserId,
         toUserId,
-        message
-    })
-    await newMessage.save()
-    return newMessage
+        taskId,
+        message,
+        isRead: false, // 기본값: 읽지 않음
+        createdAt: new Date(),
+    });
+    return await chatMessage.save();
 }
 
-// 특정 사용자 간의 채팅 내역 조회
-export async function getMessages(fromUserId, toUserId) {
-    const messages = await Chat.find({
+// 사용자 간 메시지 조회
+export async function getMessagesByUser(fromUserId, toUserId) {
+    return await Chat.find({
         $or: [
-            { fromUserId, toUserId }, // 내가 보낸 메시지
-            { fromUserId: toUserId, toUserId: fromUserId } // 상대가 보낸 메시지
-        ]
+            { fromUserId, toUserId },
+            { fromUserId: toUserId, toUserId: fromUserId },
+        ],
     })
-        .sort({ createdAt: 1 }) // 오래된 메시지부터 정렬
-        .exec()
-    return messages
+        .sort({ createdAt: 1 }) // 시간순 정렬
+        .exec();
 }
 
 // 메시지 읽음 처리
-export async function markAsRead(fromUserId, toUserId) {
-    await Chat.updateMany(
-        { fromUserId, toUserId, isRead: false }, // 읽지 않은 메시지
-        { $set: { isRead: true } } // 읽음 처리
-    )
+export async function markMessagesAsRead(toUserId, fromUserId) {
+    return await Chat.updateMany(
+        { toUserId, fromUserId, isRead: false },
+        { isRead: true }
+    ).exec();
 }
 
+// 읽지 않은 메시지 수 조회
 export async function getUnreadMessages(toUserId) {
-    const count = await Chat.countDocuments({
-        toUserId,
-        isRead: false
-    }).exec()
-    return count
+    return await Chat.countDocuments({ toUserId, isRead: false }).exec();
+}
+
+// 거래 ID별 메시지 조회
+export async function getMessagesByTaskId(taskId) {
+    return await Chat.find({ taskId }).sort({ createdAt: 1 }).exec();
+}
+
+// 사용자 ID로 사용자 정보 조회
+export async function getUserById(userId) {
+    return await User.findById(userId).exec();
+}
+
+// 채팅 상대방 정보 조회
+export async function getChatPartner(taskId, userId) {
+    const chat = await Chat.findOne({
+        taskId,
+        fromUserId: { $ne: userId },
+    }).exec();
+    return chat ? await getUserById(chat.fromUserId) : null;
 }

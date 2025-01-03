@@ -1,5 +1,6 @@
 import express from 'express';
 import { partnerController } from '../controller/partnerController.js'
+import { getpartnerinfo } from '../controller/partnerController.js'
 import { createUploader } from "../middleware/partnershipMiddleware.js";
 import { isAuth } from '../middleware/isProfile.js'
 
@@ -27,6 +28,9 @@ router.get("/step5", isAuth, partnerController.getPartnershipStep5);
 
 // // 5단계: 자기소개,이동수단 저장
 router.post("/step5",isAuth,partnerController.applyPartnership5)
+
+// 프로필에 넘겨야되는 get일단 테스트용으로 여기 넣어둠
+router.get("/getpartner", isAuth,getpartnerinfo);
 
 export default router;
 

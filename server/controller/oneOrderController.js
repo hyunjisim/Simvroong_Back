@@ -1,23 +1,29 @@
 import * as oneOrderQuery from '../query/oneOrderQuery.js';
+import * as authQuery from '../query/authQuery.js';
+import User from '../schema/UserSchema.js';
 
-// taskId를 기반으로 상세 페이지 데이터 가져오기
 export async function getOrderById(req, res) {
-    const { taskId } = req.params; // 요청된 심부름 ID
-
+    const { taskId } = req.params // 요청된 심부름 ID
     try {
-        const result = await oneOrderQuery.getById(taskId); 
-
+        const result = await oneOrderQuery.getById(taskId)
         if (!result) {
-            return res.status(404).json({ message: '관련 데이터를 찾을 수 없습니다.' });
+            return res.status(404).json({ message: '관련 데이터를 찾을 수 없습니다.' })
         }
 
+        const currentUser = req.mongo_id
+        const decode = result.user_id
+        const user = await authQuery.findUserbyToken(decode)
+        const nickname = user.nickname
+        const photoUrl = user.photoUrl
+        const result2 = { ...result, nickname, photoUrl }
         res.status(200).json({
             message: '상세 페이지 데이터 조회 성공',
-            data: result, 
-        });
+            data: result2,
+            currentUser
+        })
     } catch (error) {
-        console.error('taskId로 데이터 가져오기 중 오류 발생:', error);
-        res.status(500).json({ message: '서버 오류가 발생했습니다.', error: error.message });
+        console.error('taskId로 데이터 가져오기 중 오류 발생:', error)
+        res.status(500).json({ message: '서버 오류가 발생했습니다.', error: error.message })
     }
 }
 
@@ -34,42 +40,51 @@ export const manageController = async (req, res) => {
 
         const user_Id  = req.mongo_id;
         const { taskId } = req.params;
-        const { action, questionIndex, answerIndex, data } = req.body;
+        const { action, questionId, answerId, data } = req.body;
+        // console.log('Action:', action);
+        // console.log('사용자 ID (req.mongo_id):', user_Id);
+        // console.log('전달된 taskId:', taskId);
+        // console.log('전달된 데이터:', { questionId, data });
 
-        console.log('Action Requested:', action);
-        console.log('User ID:', user_Id);
+        // console.log('Action Requested:', action);
+        // console.log('User ID:', user_Id);
 
+        const user = await User.findById(user_Id)
+        
         let result;
 
         switch (action) {
             case 'addQuestion':
                 // 질문 추가
-                result = await oneOrderQuery.addQuestion(taskId, data, user_Id);
+                result = await oneOrderQuery.addQuestion(taskId, data, user_Id, user.nickname, user.photoUrl);
                 return res.status(200).json({ message: '질문 추가 성공', data: result });
 
             case 'updateQuestion':
                 // 질문 수정
-                result = await oneOrderQuery.updateQuestion(taskId, questionIndex, data.content, user_Id);
+                result = await oneOrderQuery.updateQuestion(taskId, questionId, data.content, user_Id);
                 return res.status(200).json({ message: '질문 수정 성공', data: result });
 
             case 'deleteQuestion':
                 // 질문 삭제
-                result = await oneOrderQuery.deleteQuestion(taskId, questionIndex, user_Id);
+                result = await oneOrderQuery.deleteQuestion(taskId, questionId, user_Id);
+                if (!result) {
+                    return res.status(404).json({ message: '질문을 찾을 수 없습니다.' });
+                }
                 return res.status(200).json({ message: '질문 삭제 성공', data: result });
 
             case 'addAnswer':
                 // 답변 추가
-                result = await oneOrderQuery.addAnswer(taskId, questionIndex, data, user_Id);
+                result = await oneOrderQuery.addAnswer(taskId, questionId, data, user_Id, user.nickname, user.photoUrl);
                 return res.status(200).json({ message: '답변 추가 성공', data: result });
 
             case 'updateAnswer':
                 // 답변 수정
-                result = await oneOrderQuery.updateAnswer(taskId, questionIndex, answerIndex, data.content, user_Id);
+                result = await oneOrderQuery.updateAnswer(taskId, questionId, answerId, data.content, user_Id);
                 return res.status(200).json({ message: '답변 수정 성공', data: result });
 
             case 'deleteAnswer':
                 // 답변 삭제
-                result = await oneOrderQuery.deleteAnswer(taskId, questionIndex, answerIndex, user_Id);
+                result = await oneOrderQuery.deleteAnswer(taskId, questionId, answerId, user_Id);
                 return res.status(200).json({ message: '답변 삭제 성공', data: result });
 
             case 'addFavorite':

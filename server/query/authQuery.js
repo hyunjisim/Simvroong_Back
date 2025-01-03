@@ -103,7 +103,7 @@ export async function modifyUser(newNickname, userId, newPhoneNumber) {
 export async function updateProfileImage(userId, imageUrl) {
     const user = await User.findById(userId)
 
-    // 기존 이미지 삭제 (Cloudinary)
+    // 기존 이미지 삭제 (Cloudinary)`
     if (user.photoUrl) {
         const publicId = user.photoUrl.split('/').pop().split('.')[0]
         await cloudinary.uploader.destroy(publicId)
@@ -112,3 +112,5 @@ export async function updateProfileImage(userId, imageUrl) {
     // 새로운 URL로 업데이트
     return User.findByIdAndUpdate(userId, { $set: { photoUrl: imageUrl } }, { new: true })
 }
+
+
