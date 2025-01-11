@@ -100,7 +100,7 @@ export async function login(req, res, next) {
 
     const token = await createJwtToken(user._id)
 
-    return res.status(200).json({ token })
+    return res.status(200).json({ token, userNickname: user.nickname })
 }
 
 export async function findId(req, res, next) {
