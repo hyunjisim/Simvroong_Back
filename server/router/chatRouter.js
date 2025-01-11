@@ -5,9 +5,9 @@ import * as chatListController from '../controller/chatListController.js'
 
 const router = express.Router()
 
-router.post('/:channel',isAuth, chatController.creatChat)
+router.post('/:channel', isAuth, chatController.creatChat)
 
-router.get('/:channel',isAuth, chatController.getChatData)
+router.get('/:channel', isAuth, chatController.getChatData)
 
 //채팅 리스트 조회
 router.get('/', isAuth, chatListController.getChatRoomList)
@@ -21,8 +21,6 @@ router.get('/:channel/message', isAuth, chatController.getChatMessages)
 
 // 읽음 처리
 router.post('/:userId/read', isAuth, chatController.markMessagesAsRead)
-
-
 
 // 새 메시지 전송
 // router.post('/:userId', isAuth, chatController.sendMessage)
