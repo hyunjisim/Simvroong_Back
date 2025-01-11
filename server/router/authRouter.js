@@ -20,7 +20,7 @@ router.post('/findId', authController.findId)
 // find-pw
 router.post('/findPw', authController.findPw)
 
-// login-stay
-// router.get('/me', isAuth, authController.me)
+// 디코딩 된 objId로 유저 데이터 가져오기
+// router.post('/getUserBy_Id', authController.me)
 
 export default router

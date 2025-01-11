@@ -2,13 +2,9 @@ import { virtualId } from '../query/connectDBQuery.js'
 import mongoose from 'mongoose'
 
 const ChatSchema = new mongoose.Schema({
-    // TotalOrder 기준으로 생성
-    orderId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'TotalOrder', // 심부름(거래) 건별 연결
-        required: true
-    },
-
+    taskId: {type: mongoose.Schema.Types.ObjectId,required: true},
+    TaskUserId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    toTaskUserId: { type: mongoose.Schema.Types.ObjectId, required: true },
     // 거래 내역 (상단 박스)
     transactionDetails: {
         title: { type: String, required: true }, // 심부름 제목
@@ -21,31 +17,9 @@ const ChatSchema = new mongoose.Schema({
             default: '진행 중'
         }
     },
-
-    // 메시지 내역
-    messages: [
-        {
-            fromUserId: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'User',
-                required: true
-            },
-            toUserId: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'User',
-                required: true
-            },
-            content: { type: String, required: true },
-            type: {
-                type: String,
-                enum: ['text', 'image', 'file'],
-                default: 'text'
-            },
-            timestamp: { type: Date, default: Date.now },
-            isRead: { type: Boolean, default: false }
-        }
-    ],
-
+    lastMessage: { type: String }, // 마지막 메시지 내용
+    lastMessageTime: { type: Date }, // 마지막 메시지 시간
+    
     createdAt: {
         type: Date,
         default: Date.now

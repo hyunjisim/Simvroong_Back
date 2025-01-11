@@ -100,7 +100,7 @@ export async function login(req, res, next) {
 
     const token = await createJwtToken(user._id)
 
-    return res.status(200).json({ token })
+    return res.status(200).json({ token, userNickname: user.nickname })
 }
 
 export async function findId(req, res, next) {
@@ -152,11 +152,3 @@ export async function verify(req, res, next) {
         res.status(200).json(token)
     }
 }
-
-// export async function me(req, res, next) {
-//     const user = await authRepository.findById(req.userid)
-//     if (!user) {
-//         return res.status(404).json({ message: '사용자가 없음' })
-//     }
-//     res.status(200).json({ token: req.token, username: user.username })
-// }

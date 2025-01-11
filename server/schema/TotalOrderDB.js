@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 
 const OrderApplicationSchema = new mongoose.Schema({
     user_Id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // 신청한 사용자 ID
+    acceptedPartnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Partner', default: null }, // 심부름 수락한 파트너 아이디
+    isAccepted: { type: Boolean, default: false }, // 심부름 수락 상태
     taskId: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() }, // 자동 생성
     title: { type: String, maxlength: 100, trim: true, required: true }, // 심부름 제목
     category: {
@@ -51,15 +53,20 @@ const OrderApplicationSchema = new mongoose.Schema({
     },
     QnA: [ // Q&A 필드
         {
-            _id: false,
             question: {
-                user_Id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+                _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
+                nickname : { type: String },
+                photoUrl : { type: String },
+                userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
                 content: { type: String },
                 createdAt: { type: Date, default: Date.now }
             },
             answers: [
                 {
-                    user_Id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+                    _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
+                    nickname : { type: String },
+                    photoUrl : { type: String },
+                    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
                     content: { type: String },
                     isRequester: { type: Boolean, default: false },
                     createdAt: { type: Date, default: Date.now }
@@ -69,7 +76,7 @@ const OrderApplicationSchema = new mongoose.Schema({
     ],
     reports: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Report' }], // 신고 데이터 참조
     isCompleted: { type: Boolean, default: false }, // 완료 여부
-    isActive: { type: String, enum:['완료', '진행중', '취소 중', '취소 완료'], default:'진행중' }, // 활성화 상태
+    isActive: { type: String, enum:['완료', '진행중', ' '], default:' ' }, // 활성화 상태
     createdAt: { type: Date, default: Date.now }, // 생성일
     updatedAt: { type: Date, default: Date.now } // 수정일
 })

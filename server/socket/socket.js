@@ -1,19 +1,20 @@
 import { Server } from 'socket.io'
 import jwt from 'jsonwebtoken'
 import { config } from '../config/config.js'
+import Order from '../schema/TotalOrderDB.js'
+import User from '../schema/UserSchema.js'
 
 class Socket {
     constructor(server) {
         this.io = new Server(server, {
             cors: {
-                origin: '*'
+                origin: 'http://localhost:3000',
+                methods: ['GET', 'POST']
             }
         })
 
-        // 사용자별 소켓 ID를 저장할 맵
         this.connectedUsers = new Map()
 
-        // 소켓 인증
         this.io.use((socket, next) => {
             const token = socket.handshake.auth.token
             if (!token) {
@@ -24,43 +25,60 @@ class Socket {
                 if (error) {
                     return next(new Error('인증 에러: 잘못된 토큰입니다.'))
                 }
-                socket.userId = decoded.id // JWT에서 사용자 ID 추출
+                socket.userId = decoded.id
                 next()
             })
         })
 
-        // 연결 이벤트
         this.io.on('connection', socket => {
-            console.log(`사용자 연결: ${socket.userId}`)
+            console.log('새로운 클라이언트 연결')
 
-            // 사용자 ID와 소켓 ID 매핑
-            this.connectedUsers.set(socket.userId, socket.id)
+            socket.on('joinRoom', async ({ taskId, token }) => {
+                try {
+                    // 토큰 검증 및 사용자 정보 조회
+                    const decoded = jwt.verify(token, config.jwt.secretKey)
+                    const currentUser = await User.findById(decoded.id)
+                    const task = await Order.findById(taskId).populate('chatPartner') // chatPartner 정보 포함
 
-            // 연결 해제 시 소켓 ID 제거
-            socket.on('disconnect', () => {
-                console.log(`사용자 연결 해제: ${socket.userId}`)
-                this.connectedUsers.delete(socket.userId)
+                    if (!task) {
+                        return socket.emit('error', { message: '작업을 찾을 수 없습니다.' })
+                    }
+
+                    // 방에 참가
+                    socket.join(taskId)
+
+                    // 방 데이터 전송
+                    socket.emit('roomData', {
+                        messages: task.messages, // 메시지 리스트
+                        currentUser,
+                        chatPartner: task.chatPartner
+                    })
+                } catch (error) {
+                    console.error('방 참가 오류:', error)
+                    socket.emit('error', { message: '방에 참가할 수 없습니다.' })
+                }
             })
 
-            // 메시지 처리
-            socket.on('sendMessage', ({ toUserId, message }) => {
-                this.handleMessage(socket.userId, toUserId, message)
+            socket.on('sendMessage', async messageData => {
+                const { taskId, userId, message, timestamp } = messageData
+                try {
+                    // 메시지 데이터베이스에 저장
+                    const order = await Order.findById(taskId)
+                    const newMessage = { fromUserId: userId, message, timestamp }
+                    order.messages.push(newMessage)
+                    await order.save()
+
+                    // 메시지 전송
+                    this.io.to(taskId).emit('newMessage', newMessage)
+                } catch (error) {
+                    console.error('메시지 전송 오류:', error)
+                }
+            })
+
+            socket.on('disconnect', () => {
+                console.log('클라이언트 연결 해제')
             })
         })
-    }
-
-    // 1대1 메시지 처리
-    handleMessage(fromUserId, toUserId, message) {
-        const toSocketId = this.connectedUsers.get(toUserId)
-        if (toSocketId) {
-            this.io.to(toSocketId).emit('receiveMessage', {
-                fromUserId,
-                message
-            })
-        } else {
-            console.log(`사용자 ${toUserId}는 현재 오프라인입니다.`)
-            // 오프라인 사용자를 위한 추가 로직 (예: DB에 저장)
-        }
     }
 }
 

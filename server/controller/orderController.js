@@ -16,7 +16,7 @@ export async function createOrder(req, res, next) {
 
         console.log('생성된 Order의 taskId:', order.taskId);
 
-        res.status(201).json({order});
+        res.status(201).json({order, user_Id});
     } catch (error) {
         console.error('Order 생성 중 오류 발생:', error);
         res.status(500).json({

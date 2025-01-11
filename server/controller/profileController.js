@@ -1,6 +1,5 @@
 import * as authRepository from '../query/authQuery.js'
 import * as bcrypt from 'bcrypt'
-// import * as authController from './authController.js'
 import { config } from '../config/config.js'
 
 // 개인정보 조회, 수정 창 들어가기
@@ -121,3 +120,4 @@ export async function getUserData(req, res) {
     }
     return res.status(200).json({ nickname: user.nickname, photoUrl: user.photoUrl })
 }
+
