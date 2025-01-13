@@ -64,20 +64,59 @@ export async function creatChat(req, res) {
 
 
 
+// export async function getChatData(req, res) {
+//     const { channel } = req.params; // URL 파라미터에서 channel 값을 추출
+//     try {
+//         if (!channel) {
+//             return res.status(400).json({ message: '채널 값이 제공되지 않았습니다.' });
+//         }
+
+//         const ChatData = await chatRepository.getChatData(channel);
+//         res.status(200).json(ChatData);
+//     } catch (error) {
+//         console.error('채팅 데이터 조회 중 오류:', error.message);
+//         res.status(500).json({ message: '채팅 데이터 조회 실패', error });
+//     }
+// }
+
 export async function getChatData(req, res) {
     const { channel } = req.params; // URL 파라미터에서 channel 값을 추출
+    const mongo_id = req.mongo_id; // 로그인한 사용자 ID
+    console.log('로그인한 사용자 ID:', mongo_id);
+
     try {
         if (!channel) {
             return res.status(400).json({ message: '채널 값이 제공되지 않았습니다.' });
         }
+        if (!mongo_id) {
+            return res.status(400).json({ message: 'mongo_id 값이 제공되지 않았습니다.' });
+        }
 
         const ChatData = await chatRepository.getChatData(channel);
-        res.status(200).json(ChatData);
+
+        if (!ChatData) {
+            return res.status(404).json({ message: '채팅 데이터를 찾을 수 없습니다.' });
+        }
+
+        if (new mongoose.Types.ObjectId(mongo_id).equals(ChatData.TaskUserId)) {
+            const user = await User.findOne({ _id: new mongoose.Types.ObjectId(ChatData.toTaskUserId) });
+            console.log('if문 user', user);
+
+            return res.status(200).json({ ChatData, Nickname: user?.nickname || 'Unknown' });
+        } else if (new mongoose.Types.ObjectId(mongo_id).equals(ChatData.toTaskUserId)) {
+            const user = await User.findOne({ _id: new mongoose.Types.ObjectId(ChatData.TaskUserId) });
+            console.log('else if문 user', user);
+
+            return res.status(200).json({ ChatData, Nickname: user?.nickname || 'Unknown' });
+        }
+
+        return res.status(202).json(ChatData);
     } catch (error) {
         console.error('채팅 데이터 조회 중 오류:', error.message);
         res.status(500).json({ message: '채팅 데이터 조회 실패', error });
     }
 }
+
 
 
 // 채팅 리스트 조회
