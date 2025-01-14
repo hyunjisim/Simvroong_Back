@@ -66,13 +66,14 @@ export async function getChatRoomList(req, res) {
             chatRooms.map(async (room) => {
                 let otherUserId;
                 let otherUserNickname;
+                console.log('room',room);
 
                 // TaskUserId로 데이터를 찾았을 경우
-                if (room.TaskUserId.toString() === mongo_id) {
+                if (room.TaskUserId.equals(new mongoose.Types.ObjectId(mongo_id))) {
                     otherUserId = room.toTaskUserId; // 상대방 ID는 toTaskUserId
                 }
                 // toTaskUserId로 데이터를 찾았을 경우
-                else if (room.toTaskUserId.toString() === mongo_id) {
+                else if (room.toTaskUserId.equals(new mongoose.Types.ObjectId(mongo_id))) {
                     otherUserId = room.TaskUserId; // 상대방 ID는 TaskUserId
                 }
                 console.log('otherUserId',otherUserId);

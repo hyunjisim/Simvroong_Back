@@ -102,15 +102,15 @@ export async function getChatData(req, res) {
             const user = await User.findOne({ _id: new mongoose.Types.ObjectId(ChatData.toTaskUserId) });
             console.log('if문 user', user);
 
-            return res.status(200).json({ ChatData, Nickname: user?.nickname || 'Unknown' });
+            return res.status(201).json({ ChatData, Nickname: user?.nickname || 'Unknown',mongo_id, });
         } else if (new mongoose.Types.ObjectId(mongo_id).equals(ChatData.toTaskUserId)) {
             const user = await User.findOne({ _id: new mongoose.Types.ObjectId(ChatData.TaskUserId) });
             console.log('else if문 user', user);
 
-            return res.status(200).json({ ChatData, Nickname: user?.nickname || 'Unknown' });
+            return res.status(202).json({ ChatData, Nickname: user?.nickname || 'Unknown',mongo_id, });
         }
 
-        return res.status(202).json(ChatData);
+        return res.status(203).json({ChatData,mongo_id});
     } catch (error) {
         console.error('채팅 데이터 조회 중 오류:', error.message);
         res.status(500).json({ message: '채팅 데이터 조회 실패', error });
