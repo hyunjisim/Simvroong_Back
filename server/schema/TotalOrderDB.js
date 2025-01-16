@@ -76,7 +76,7 @@ const OrderApplicationSchema = new mongoose.Schema({
     ],
     reports: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Report' }], // 신고 데이터 참조
     isCompleted: { type: Boolean, default: false }, // 완료 여부
-    isActive: { type: String, enum:['완료', '진행중', ' '], default:' ' }, // 활성화 상태
+    isActive: { type: String, enum:['완료', '진행중'], default:' ' }, // 활성화 상태
     createdAt: { type: Date, default: Date.now }, // 생성일
     updatedAt: { type: Date, default: Date.now } // 수정일
 })
