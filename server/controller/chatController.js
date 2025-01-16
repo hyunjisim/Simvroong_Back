@@ -19,7 +19,37 @@ export async function creatChat(req, res) {
         return res.status(400).json({ message: '필수 데이터가 누락되었습니다.' });
     }
 
+    // currentUserId와 userId가 같으면 요청 차단
+    if (currentUserId === userId) {
+        console.error('currentUserId와 userId가 동일할 수 없습니다.');
+        return res.status(400).json({ message: 'currentUserId와 userId가 동일할 수 없습니다.' });
+    }
+
+    // if ()
+
     try {
+        // 기존 채팅방 확인
+        const existingChat = await Chat.findOne({
+            taskId: new mongoose.Types.ObjectId(taskId),
+            TaskUserId: userId,
+            toTaskUserId: currentUserId,
+        });
+
+        if (existingChat) {
+            console.log('이미 존재하는 채팅방:', existingChat);
+            return res.status(200).json({
+                success: true,
+                message: '이미 존재하는 채팅방입니다.',
+                data: {
+                    _id: existingChat._id,
+                    taskId: existingChat.taskId,
+                    TaskUserId: existingChat.TaskUserId,
+                    toTaskUserId: existingChat.toTaskUserId,
+                    transactionDetails: existingChat.transactionDetails,
+                },
+            });
+        }
+
         // taskId를 ObjectId로 변환
         const order = await Order.findOne({ taskId: new mongoose.Types.ObjectId(taskId) });
         console.log('Order 데이터:', order);
