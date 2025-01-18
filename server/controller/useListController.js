@@ -37,8 +37,14 @@ export async function UpdateActive(req, res) {
     //채팅 만들어 졌는지 유저아이디로 확인해야함 ToTaskuser랑 비교해야함
     const user_Id = req.mongo_id
     const {taskId} = req.body
+    const {channel} = req.params
+    if(!channel){
+        console.log(channel);
+    }
+    
     try{
-        const updateActive = await useListQuery.UpdateActive(taskId,user_Id);
+        const updateActive = await useListQuery.UpdateActive(taskId,user_Id,channel);
+        console.log('updateActive',updateActive);
         if(!updateActive){
             return res.status(400).json({ message: '심부름을 못 가져 옵니다.' });
         }
@@ -47,5 +53,21 @@ export async function UpdateActive(req, res) {
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+    }
+}
+
+export async function GetActive(req, res) {
+    try{
+        const user_Id = req.mongo_id
+        const {taskId} = req.params
+        const {channel} = req.params
+        
+        const GetActive = await useListQuery.GetActive(taskId,user_Id,channel);
+        console.log('GetActive',GetActive);
+
+        return res.status(200).json({ data: GetActive });
+
+    } catch (error) {
+
     }
 }
