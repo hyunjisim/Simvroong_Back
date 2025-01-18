@@ -75,17 +75,58 @@ export async function findListsByPartner(user_Id) {
 }
 
 // 심부름 신청상태 업데이트
-export async function UpdateActive(taskId,user_Id) {
+export async function UpdateActive(taskId,user_Id,channel) {
     try{
         // 토탈오더에있는 isActive
         // 업데이트해야함 '완료'로
         // 메세지에 있는 거래완료는 개인별 돈을 왔다갔다 하는걸로 다르게 정의해야함
         // 프론트에서는 토탈오더가 완료로 처리되어있으면 채팅에있는거 거래완료 버튼 흑백 처리하고 post에있는 신청 버튼도 없애야함
         // 돈거래는 거래완료를 게시물 당사자가 누르면 중간 어디에 돈은 머물러 두게하고
+        //  생각해보니까 중간에 두는게 이상함..그럼 심부름 수행완료 버튼도 어딘가에 만들어야함 그럼 부릉 리스트에서 심부름까지 완료했을떄 게시물 올린 당사자가 완료 버튼을 눌렀을때 나가게 해야하는데........
         // 심부름과정까지 완료되면 완전히 돈을 보내고 완료중으로 바꿔야함
-        const orders = await Order.findOne({ 
-            _id : new ObjectId(taskId)
-        })
+        console.log(channel);
+        const chat = await Chat.findOne(
+            {_id : channel,TaskUserId : user_Id},
+            // 찾은 전체 데이터 반환
+        )
+        console.log(chat);
+        console.log('taskId',taskId);
+
+
+        const orders = await Order.findOneAndUpdate(
+            { taskId : taskId},
+            { $set: { isActive: '완료', updatedAt: new Date() } },
+            { new: true } // 업데이트된 데이터를 반환
+        )
+        console.log('orders',orders);
+
+        if (!orders || orders.length === 0) {
+            throw new Error("Order 데이터가 없습니다.");
+        }
+
+        return orders
+        } catch (error) {
+            console.error('Error fetching all orders:', error);
+            throw new Error('Could not fetch orders');
+        }
+}
+
+
+// 심부름 신청상태 가져오기
+export async function GetActive(taskId,user_Id,channel) {
+    try{
+        console.log(channel);
+        const chat = await Chat.findOne(
+            {_id : channel,TaskUserId : user_Id},
+            // 찾은 전체 데이터 반환
+        )
+        console.log(chat);
+        console.log('taskId',taskId);
+
+
+        const orders = await Order.findOne(
+            { taskId : taskId},
+        )
         console.log('orders',orders);
 
         if (!orders || orders.length === 0) {

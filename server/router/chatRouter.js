@@ -24,7 +24,10 @@ router.get('/:channel/message', isAuth, chatController.getChatMessages)
 router.post('/:userId/read', isAuth, chatController.markMessagesAsRead)
 
 // 심부름 거래 완료
+router.get('/:channel/completed/:taskId', isAuth, useListController.GetActive)
+
 router.post('/:channel/completed', isAuth, useListController.UpdateActive)
+// task Active 반환
 
 
 
