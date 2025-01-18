@@ -6,9 +6,9 @@ import * as useListController from '../controller/useListController.js'
 
 const router = express.Router()
 
-router.post('/:channel',isAuth, chatController.creatChat)
+router.post('/:channel', isAuth, chatController.creatChat)
 
-router.get('/:channel',isAuth, chatController.getChatData)
+router.get('/:channel', isAuth, chatController.getChatData)
 
 //채팅 리스트 조회
 router.get('/', isAuth, chatListController.getChatRoomList)
@@ -23,13 +23,12 @@ router.get('/:channel/message', isAuth, chatController.getChatMessages)
 // 읽음 처리
 router.post('/:userId/read', isAuth, chatController.markMessagesAsRead)
 
+
 // 심부름 거래 완료
 router.get('/:channel/completed/:taskId', isAuth, useListController.GetActive)
 
 router.post('/:channel/completed', isAuth, useListController.UpdateActive)
 // task Active 반환
-
-
 
 // 새 메시지 전송
 // router.post('/:userId', isAuth, chatController.sendMessage)
