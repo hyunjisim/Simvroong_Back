@@ -101,13 +101,14 @@ export async function modifyUser(newNickname, userId, newPhoneNumber) {
 }
 
 export async function updateProfileImage(userId, imageUrl) {
-    const user = await User.findById(userId)
+    // 유저 데이터 가져오기
+    const user = await User.findById(userId);
 
+    // 이전 이미지 URL 확인
     if (user.photoUrl) {
-        const publicId = user.photoUrl.split('/').pop().split('.')[0]
-        await cloudinary.uploader.destroy(publicId)
+        console.log(`이전 프로필 사진 URL: ${user.photoUrl}`);
     }
 
-    // 새로운 URL로 업데이트
-    return User.findByIdAndUpdate(userId, { $set: { photoUrl: imageUrl } }, { new: true })
+    // 새로운 이미지 URL로 업데이트
+    return User.findByIdAndUpdate(userId, { $set: { photoUrl: imageUrl } }, { new: true });
 }

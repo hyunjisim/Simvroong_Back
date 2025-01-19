@@ -2,7 +2,6 @@ import express from 'express'
 import * as chatController from '../controller/chatController.js'
 import { isAuth } from '../middleware/isProfile.js'
 import * as chatListController from '../controller/chatListController.js'
-import * as useListController from '../controller/useListController.js'
 
 const router = express.Router()
 
@@ -22,13 +21,6 @@ router.get('/:channel/message', isAuth, chatController.getChatMessages)
 
 // 읽음 처리
 router.post('/:userId/read', isAuth, chatController.markMessagesAsRead)
-
-
-// 심부름 거래 완료
-router.get('/:channel/completed/:taskId', isAuth, useListController.GetActive)
-
-router.post('/:channel/completed', isAuth, useListController.UpdateActive)
-// task Active 반환
 
 // 새 메시지 전송
 // router.post('/:userId', isAuth, chatController.sendMessage)

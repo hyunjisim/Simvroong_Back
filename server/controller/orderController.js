@@ -1,27 +1,36 @@
-import * as orderQuery from '../query/orderQuery.js'
-// import * as authQuery from '../query/authQuery.js'
+import * as orderQuery from "../query/orderQuery.js";
 
-export async function createOrder(req, res, next) {
+// 심부름 생성 컨트롤러
+export async function createOrder(req, res) {
     try {
-        // const {token} = req.mongo_id
+        console.log("요청 데이터:", req.body);
+        console.log("S3 업로드 경로:", req.awsUploadPath);
 
-        // Order 생성
-        const user_Id = req.mongo_id; // 인증된 사용자 ID
-        const orderData = { ...req.body, user_Id }; // user_Id를 추가
+        const user_Id = req.mongo_id;
+        const orderData = { ...req.body, user_Id };
+
+        // S3 URL 추가
+        if (req.awsUploadPath) {
+            orderData.taskDetails = {
+                ...orderData.taskDetails,
+                photoUrl: req.awsUploadPath,
+            };
+        }
+
+        console.log("최종 데이터:", orderData);
+
         const order = await orderQuery.create(orderData);
 
         if (!order.taskId) {
-            throw new Error('Order 생성 중 taskId가 없습니다.');
+            throw new Error("Order 생성 중 taskId가 없습니다.");
         }
 
-        console.log('생성된 Order의 taskId:', order.taskId);
-
-        res.status(201).json({order, user_Id});
+        console.log("생성된 Order의 taskId:", order.taskId);
+        res.status(201).json({ order, user_Id });
     } catch (error) {
-        console.error('Order 생성 중 오류 발생:', error);
-        res.status(500).json({
-            message: '서버 오류가 발생했습니다.',
-            error: error.message
-        });
+        console.error("Order 생성 중 오류 발생:", error);
+        res.status(500).json({ message: "서버 오류가 발생했습니다.", error: error.message });
     }
 }
+
+  

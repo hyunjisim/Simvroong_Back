@@ -27,8 +27,7 @@ const ChatSchema = new mongoose.Schema({
     updatedAt: {
         type: Date,
         default: Date.now
-    },
-    isActive: { type: mongoose.Schema.Types.String, ref: 'Order', default: null}
+    }
 })
 virtualId(ChatSchema)
 
