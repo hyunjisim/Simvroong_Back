@@ -95,19 +95,22 @@ export async function updatePassword(req, res, next) {
 }
 
 export async function updateImg(req, res) {
-    const { imageUrl } = req.body
-    const userId = req.userId // 인증된 사용자 ID (미들웨어에서 설정)
+    const userId = req.mongo_id; // 인증된 사용자 ID (미들웨어에서 설정)
+    const imageUrl = req.awsUploadPath; // S3에서 업로드된 이미지 URL
 
     if (!imageUrl) {
-        return res.status(400).json({ message: '이미지 URL이 없습니다.' })
+        return res.status(400).json({ message: "S3 업로드 실패로 이미지 URL을 가져올 수 없습니다." });
     }
 
     try {
-        await authRepository.updateProfileImage(userId, imageUrl)
-        res.status(201).json({ message: '이미지 업로드 및 저장 완료', imageUrl })
+        await authRepository.updateProfileImage(userId, imageUrl);
+        res.status(201).json({
+            message: "프로필 사진 업로드 및 저장 완료",
+            imageUrl, // 클라이언트로 업로드된 URL 반환
+        });
     } catch (error) {
-        console.error('DB 저장 실패:', error)
-        res.status(500).json({ message: 'DB 저장 중 오류 발생' })
+        console.error("DB 저장 실패:", error);
+        res.status(500).json({ message: "프로필 사진 저장 중 오류가 발생했습니다." });
     }
 }
 
