@@ -93,7 +93,7 @@ export const partnerController = {
             }
 
             const facePhotoPath = req.file.path.replace(/\\/g, '/'); // 경로 변환
-            const absolutePhotoUrl = `http://localhost:8080/${facePhotoPath}`;
+            const absolutePhotoUrl = `http://192.168.163.8:8080/${facePhotoPath}`;
 
             // 기존 파트너 문서 검색
             let partner = await Partner.findOne({ userId: mongo_id });
@@ -220,9 +220,9 @@ export const partnerController = {
             const gender = user.gender === "male" ? "남성" : user.gender === "female" ? "여성" : "성별 없음";
             const ageGroup = calculateAgeGroup(user.birth);
             const profileImage = partner?.facePhotoUrl
-            ? (partner.facePhotoUrl.startsWith("http") ? partner.facePhotoUrl : `http://localhost:8080/${partner.facePhotoUrl}`)
+            ? (partner.facePhotoUrl.startsWith("http") ? partner.facePhotoUrl : `http://192.168.163.8:8080/${partner.facePhotoUrl}`)
             : user.photoUrl
-            ? `http://localhost:8080/${user.photoUrl}`
+            ? `http://192.168.163.8:8080/${user.photoUrl}`
             : "프로필 이미지 없음";
             const errands = partner?.servicesOffered || [];
 
@@ -295,9 +295,9 @@ export async function getpartnerinfo(req, res, next){
         const gender = user.gender === "male" ? "남성" : user.gender === "female" ? "여성" : "성별 없음";
         const ageGroup = calculateAgeGroup(user.birth);
         const profileImage = partner?.facePhotoUrl
-        ? (partner.facePhotoUrl.startsWith("http") ? partner.facePhotoUrl : `http://localhost:8080/${partner.facePhotoUrl}`)
+        ? (partner.facePhotoUrl.startsWith("http") ? partner.facePhotoUrl : `http://192.168.163.8:8080/${partner.facePhotoUrl}`)
         : user.photoUrl
-        ? `http://localhost:8080/${user.photoUrl}`
+        ? `http://192.168.163.8:8080/${user.photoUrl}`
         : "프로필 이미지 없음";
         const errands = partner?.servicesOffered || [];
         const bio = partner?.profile.bio || [];

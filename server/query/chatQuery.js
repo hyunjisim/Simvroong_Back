@@ -5,13 +5,13 @@ import mongoose from 'mongoose';
 
 export async function creatChat(taskId,userId,currentUserId){
     try {
-        console.log('creatChat 호출됨 - 전달된 값:', { taskId, userId, currentUserId });
+        // console.log('creatChat 호출됨 - 전달된 값:', { taskId, userId, currentUserId });
         // Order 컬렉션에서 taskId로 데이터 조회
         const order = await Order.findOne({ taskId });
         if (!order) {
             throw new Error('해당 taskId로 Order 데이터를 찾을 수 없습니다.');
         }
-        console.log('조회된 Order 데이터:', order);
+        // console.log('조회된 Order 데이터:', order);
 
         // Chat 문서 생성
         const chat = new Chat({

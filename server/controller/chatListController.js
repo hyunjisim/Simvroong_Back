@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 export async function getChatRoomList(req, res) {
     // const userId = req.user.id; // 사용자 인증 미들웨어로 가져온 사용자 ID
     const mongo_id = req.mongo_id; // 로그인한 사용자 ID
-    console.log('로그인한 사용자 ID:', mongo_id);
+    // console.log('로그인한 사용자 ID:', mongo_id);
 
     try {
         // const taskUserRooms = await Chat.find({ TaskUserId: new mongoose.Types.ObjectId(mongo_id) })
@@ -66,7 +66,7 @@ export async function getChatRoomList(req, res) {
             chatRooms.map(async (room) => {
                 let otherUserId;
                 let otherUserNickname;
-                console.log('room',room);
+                // console.log('room',room);
 
                 // TaskUserId로 데이터를 찾았을 경우
                 if (room.TaskUserId.equals(new mongoose.Types.ObjectId(mongo_id))) {
@@ -76,7 +76,7 @@ export async function getChatRoomList(req, res) {
                 else if (room.toTaskUserId.equals(new mongoose.Types.ObjectId(mongo_id))) {
                     otherUserId = room.TaskUserId; // 상대방 ID는 TaskUserId
                 }
-                console.log('otherUserId',otherUserId);
+                // console.log('otherUserId',otherUserId);
 
                 // 상대방 ID로 닉네임 조회
                 if (otherUserId) {
@@ -96,7 +96,7 @@ export async function getChatRoomList(req, res) {
             })
         );
 
-        console.log('채팅방 리스트:', chatRoomsWithNicknames);
+        // console.log('채팅방 리스트:', chatRoomsWithNicknames);
 
         res.status(200).json({ success: true, data: chatRoomsWithNicknames });
 

@@ -12,7 +12,7 @@ export async function getAll() {
         return orders.map(order => ( {
             taskId : order.taskId,
             title: order.title,
-            photoUrl: order.taskDetails.photoUrl,
+            thumnail: order.taskDetails.thumnail,
             location: order.location,
             schedule: order.schedule,
             payment: order.payment,
@@ -41,7 +41,7 @@ export async function getCategory(categories) {
       return filteredOrders.map(order => ({
         taskId : order.taskId,
         title: order.title,
-        photoUrl: order.taskDetails.photoUrl,
+        thumnail: order.taskDetails.thumnail,
         category: order.category, // 이 값을 반환하도록 추가
         location: order.location,
         schedule: order.schedule,

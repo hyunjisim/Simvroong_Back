@@ -4,7 +4,7 @@ export async function getAllOrder(req, res, next) {
     try {
       const { category } = req.query;
       const decodedCategory = decodeURIComponent(category || "").trim();
-      console.log("요청된 카테고리:", decodedCategory);
+      // console.log("요청된 카테고리:", decodedCategory);
   
       if (decodedCategory && decodedCategory !== "전체") {
         const categories = decodedCategory.split(",").map((cat) => cat.trim());

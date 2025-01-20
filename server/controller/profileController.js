@@ -9,7 +9,7 @@ export async function userInfo(req, res, next) {
 
     const user = await authRepository.findUserbyToken(docodedToken)
     if (!user) {
-        console.log('존재하지 않는 아이디')
+        // console.log('존재하지 않는 아이디')
         return res.status(401)
     }
 
@@ -95,27 +95,21 @@ export async function updatePassword(req, res, next) {
 }
 
 export async function updateImg(req, res) {
-    const userId = req.mongo_id; // 인증된 사용자 ID (미들웨어에서 설정)
-    const imageUrl = req.awsUploadPath; // S3에서 업로드된 이미지 URL
+    const { imageUrl } = req.body
+    const userId = req.userId // 인증된 사용자 ID (미들웨어에서 설정)
 
     if (!imageUrl) {
-        return res.status(400).json({ message: "S3 업로드 실패로 이미지 URL을 가져올 수 없습니다." });
+        return res.status(400).json({ message: '이미지 URL이 없습니다.' })
     }
 
     try {
-        // 데이터베이스에 이미지 URL 업데이트
-        await authRepository.updateProfileImage(userId, imageUrl);
-
-        res.status(201).json({
-            message: "프로필 사진 업로드 및 저장 완료",
-            imageUrl, // 클라이언트로 업로드된 URL 반환
-        });
+        await authRepository.updateProfileImage(userId, imageUrl)
+        res.status(201).json({ message: '이미지 업로드 및 저장 완료', imageUrl })
     } catch (error) {
-        console.error("DB 저장 실패:", error);
-        res.status(500).json({ message: "프로필 사진 저장 중 오류가 발생했습니다." });
+        console.error('DB 저장 실패:', error)
+        res.status(500).json({ message: 'DB 저장 중 오류 발생' })
     }
 }
-
 
 export async function getUserData(req, res) {
     const decodeToken = req.mongo_id
