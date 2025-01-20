@@ -3,11 +3,18 @@ import * as orderQuery from '../query/orderQuery.js'
 
 export async function createOrder(req, res, next) {
     try {
-        // const {token} = req.mongo_id
-
-        // Order 생성
-        const user_Id = req.mongo_id; // 인증된 사용자 ID
-        const orderData = { ...req.body, user_Id }; // user_Id를 추가
+        console.log("요청 데이터:", req.body);
+        console.log("S3 업로드 경로:", req.awsUploadPath);
+        const user_Id = req.mongo_id;
+        const orderData = { ...req.body, user_Id };
+        // S3 URL 추가
+        if (req.awsUploadPath) {
+            orderData.taskDetails = {
+                ...orderData.taskDetails,
+                photoUrl: req.awsUploadPath,
+            };
+        }
+        console.log("최종 데이터:", orderData);
         const order = await orderQuery.create(orderData);
 
         if (!order.taskId) {
