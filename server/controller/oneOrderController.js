@@ -9,7 +9,7 @@ export async function getOrderById(req, res) {
         if (!result) {
             return res.status(404).json({ message: '관련 데이터를 찾을 수 없습니다.' })
         }
-
+        //원흉 찾음
         const currentUser = req.mongo_id
         const decode = result.user_id
         const user = await authQuery.findUserbyToken(decode)
@@ -26,6 +26,26 @@ export async function getOrderById(req, res) {
         res.status(500).json({ message: '서버 오류가 발생했습니다.', error: error.message })
     }
 }
+
+export const getLikeStatus = async (req, res) => {
+        try {
+            const user_Id = req.mongo_id; // 인증된 사용자 ID
+            const { taskId } = req.params; // 클라이언트에서 요청한 taskId
+            if (!user_Id || !taskId) {
+                return res.status(400).json({ message: '유효하지 않은 요청입니다.' });
+            }
+            // 좋아요 상태 확인
+            const isLiked = await oneOrderQuery.checkIfLiked(user_Id, taskId);
+            // 상태 반환
+            return res.status(200).json({
+                message: '좋아요 상태 불러오기 성공',
+                data: { isLiked },
+            });
+        } catch (error) {
+            console.error('Error fetching like status:', error);
+            return res.status(500).json({ message: '좋아요 상태를 가져오는 데 실패했습니다.' });
+        }
+    };
 
 // taskId와 action에 따른 Q&A와 좋아요
 export const manageController = async (req, res) => {

@@ -1,8 +1,13 @@
 import { Server } from 'socket.io'
 import jwt from 'jsonwebtoken'
 import { config } from '../config/config.js'
-import Order from '../schema/TotalOrderDB.js'
+import Chat from '../schema/ChatSchema.js'
+import Message from '../schema/MessageSchema.js'
+import mongoose from "mongoose";
 import User from '../schema/UserSchema.js'
+import { Expo } from "expo-server-sdk";
+
+const expo = new Expo();
 
 class Socket {
     constructor(server) {
@@ -33,54 +38,122 @@ class Socket {
         this.io.on('connection', socket => {
             console.log('새로운 클라이언트 연결')
 
-            socket.on('joinRoom', async ({ taskId, token }) => {
+            // Join Room
+            socket.on('joinRoom', async ({ channel, token }) => {
                 try {
-                    // 토큰 검증 및 사용자 정보 조회
-                    const decoded = jwt.verify(token, config.jwt.secretKey)
-                    const currentUser = await User.findById(decoded.id)
-                    const task = await Order.findById(taskId).populate('chatPartner') // chatPartner 정보 포함
-
-                    if (!task) {
-                        return socket.emit('error', { message: '작업을 찾을 수 없습니다.' })
-                    }
-
+                    console.log(`Joining room: ${channel}`);
                     // 방에 참가
-                    socket.join(taskId)
+                    socket.join(channel);
+                    console.log(`Socket Rooms: `, socket.rooms); // 현재 소켓이 속한 방 출력
 
-                    // 방 데이터 전송
-                    socket.emit('roomData', {
-                        messages: task.messages, // 메시지 리스트
-                        currentUser,
-                        chatPartner: task.chatPartner
-                    })
                 } catch (error) {
-                    console.error('방 참가 오류:', error)
-                    socket.emit('error', { message: '방에 참가할 수 없습니다.' })
+                    console.error('방 참가 오류:', error);
+                    socket.emit('error', { message: '방에 참가할 수 없습니다.' });
                 }
-            })
+            });
 
-            socket.on('sendMessage', async messageData => {
-                const { taskId, userId, message, timestamp } = messageData
+
+            // Send Message
+            socket.on('sendMessage', async (messageData) => {
                 try {
-                    // 메시지 데이터베이스에 저장
-                    const order = await Order.findById(taskId)
-                    const newMessage = { fromUserId: userId, message, timestamp }
-                    order.messages.push(newMessage)
-                    await order.save()
+                    const { channel, userId, message, timestamp, taskId } = messageData;
+                    // console.log(messageData);
+                    // console.log('channel:',channel,'sender',userId);
+                    let newMessage;
+                    let lastMessageSave
 
-                    // 메시지 전송
-                    this.io.to(taskId).emit('newMessage', newMessage)
+                    // 메시지를 데이터베이스에 저장
+                    const chat = await Message.findOne({chatRoomId: new mongoose.Types.ObjectId(channel) });
+                    if (!chat) {
+                        // 메시지 추가
+                        newMessage = new Message({
+                            chatRoomId: new mongoose.Types.ObjectId(channel),
+                            sender: userId,
+                            content: message,
+                            timestamp: timestamp || new Date(),
+                        });
+                        await newMessage.save(); // 메시지 저장
+
+                            // 기존 Chat 문서 업데이트
+                        lastMessageSave = await Chat.findOneAndUpdate(
+                            { _id: new mongoose.Types.ObjectId(channel) },
+                            {
+                                lastMessage: message,
+                                lastMessageTime: timestamp || new Date(),
+                            }
+                        );
+
+                        // console.log('새 채팅방의 첫 번째 메시지 저장 성공:', newMessage);
+                        // console.log('Chat에 lastMessage 저장 성공:', lastMessageSave);
+                    }else {
+                        // 채팅방이 이미 존재하면 메시지 추가
+                        newMessage = new Message({
+                            chatRoomId: chat.chatRoomId,
+                            sender: new mongoose.Types.ObjectId(userId),
+                            content: message,
+                            timestamp: timestamp || new Date(),
+                        });
+                        await newMessage.save(); // 메시지 저장
+
+                            // 기존 Chat 문서 업데이트
+                        lastMessageSave = await Chat.findOneAndUpdate(
+                            { _id: new mongoose.Types.ObjectId(channel) },
+                            {
+                                lastMessage: message,
+                                lastMessageTime: timestamp || new Date(),
+                            }
+                        );
+
+                        // console.log('기존 채팅방에 메시지 저장 성공:', newMessage);console.log('Chat에 lastMessage 저장 성공:', lastMessageSave);
+                    }
+                    
+                    const chatting = await Chat.findOne({ taskId : new mongoose.Types.ObjectId(taskId) })
+                    if (userId === String(chatting.TaskUserId)) {
+                        const user = await User.findById(chatting.toTaskUserId)
+                        const token = user.expoPushToken
+                        const pushAlarm = [
+                            {
+                                to: token,
+                                sound: 'default',
+                                title: user.nickname,
+                                body: message,
+                                data: { additionalData: "some data"}
+                            }
+                        ]
+
+                        await expo.sendPushNotificationsAsync(pushAlarm);
+                    }else{
+                        const user = await User.findById(chatting.TaskUserId)
+                        const token = user.expoPushToken
+                        const pushAlarm = [
+                            {
+                                to: token,
+                                sound: 'default',
+                                title: user.nickname,
+                                body: message,
+                                data: { additionalData: "some data"}
+                            }
+                        ]
+
+                        await expo.sendPushNotificationsAsync(pushAlarm);
+                    }
+                    
+
+                    // // 저장된 메시지를 클라이언트에 전송
+                    this.io.to(channel).emit('newMessage', newMessage);
                 } catch (error) {
-                    console.error('메시지 전송 오류:', error)
+                    console.error('메시지 저장 중 오류:', error);
                 }
-            })
+            });
 
+            // Disconnect
             socket.on('disconnect', () => {
-                console.log('클라이언트 연결 해제')
-            })
-        })
+                console.log('클라이언트 연결 해제');
+            });
+        });
     }
 }
+
 
 let socket
 

@@ -19,10 +19,19 @@ const UserSchema = new mongoose.Schema({
         requiredTerms: { type: Boolean, default: true }, // 필수 약관 동의
         optionalTerms: { type: Boolean, default: false } // 선택 약관 동의
     },
-    createdAt: { type: Date, default: Date.now }, // 가입 일시
+    account : {type: Number,default: 0},
+    transactions: [
+        {
+            date: { type: Date, default: Date.now }, // 거래 날짜
+            type: { type: String, enum: ['충전', '출금', '수익', '입금'], required: true }, // 거래 유형
+            amount: { type: Number, required: true }, // 거래 금액
+        },
+    ],
+    createdAt: { type: Date, default: Date.now }, // 가입 일시dd
     updatedAt: { type: Date, default: Date.now }, // 마지막 수정 일시
     isBlocked: { type: Boolean, default: false }, // 사용자의 차단 상태
-    blockedAt: { type: Date, default: null } // 차단된 날짜
+    blockedAt: { type: Date, default: null }, // 차단된 날짜
+    expoPushToken: { type: String, default: null, unique: true}, // Expo Push Token
 })
 
 virtualId(UserSchema)

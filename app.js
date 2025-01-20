@@ -16,6 +16,8 @@ import likeListRoutes from './server/router/likeListsRouter.js'
 import matchRoutes from './server/router/matchRouter.js'
 import listRoutes from './server/router/useListRouter.js'
 import searchRoutes from './server/router/searchRouter.js'
+import MoneyRouter from './server/router/MoneyRouter.js'
+import notification from './server/router/notificationRouter.js'
 
 const app = express()
 
@@ -52,6 +54,8 @@ app.use('/likelists', likeListRoutes)
 app.use('/check', matchRoutes)
 app.use("/partnership", PartnerRouter)
 app.use("/search", searchRoutes)
+app.use("/money", MoneyRouter)
+app.use("/notification", notification)
 
 connectDB()
     .then(() => {

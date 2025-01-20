@@ -14,7 +14,7 @@ const OrderApplicationSchema = new mongoose.Schema({
     },
     taskDetails: {
         description: { type: String, maxlength: 500 }, // 심부름 요청 내용
-        photoUrl: { type: String, default: '' } // 요청에 첨부된 사진 URL
+        thumnail: { type: String, default: '' } // 요청에 첨부된 사진 URL
     },
     location: {
         area: { type: String, required: true }, // 주소 (예: "서울시 강남구")
@@ -76,7 +76,7 @@ const OrderApplicationSchema = new mongoose.Schema({
     ],
     reports: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Report' }], // 신고 데이터 참조
     isCompleted: { type: Boolean, default: false }, // 완료 여부
-    isActive: { type: String, enum:['완료', '진행중', ' '], default:' ' }, // 활성화 상태
+    isActive: { type: String, enum:['거래완료', '진행중',' '], default:' ' }, // 활성화 상태
     createdAt: { type: Date, default: Date.now }, // 생성일
     updatedAt: { type: Date, default: Date.now } // 수정일
 })

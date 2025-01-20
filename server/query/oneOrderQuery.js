@@ -13,7 +13,6 @@ export async function getById(taskId) {
         const order = await Order.findOne({ taskId })
             .select('user_Id taskId title taskDetails location conditions partnerPreference schedule payment likes QnA createdAt updatedAt')
             .exec();
-
         if (!order) {
             return null;
         }
@@ -23,7 +22,7 @@ export async function getById(taskId) {
             taskId: order.taskId,
             title: order.title,
             description: order.taskDetails.description,
-            photoUrl: order.taskDetails.photoUrl,
+            thumnail: order.taskDetails.thumnail,
             location: order.location,
             conditions: order.conditions,
             partnerPreference: order.partnerPreference,
@@ -40,6 +39,29 @@ export async function getById(taskId) {
         throw error;
     }
 }
+
+export async function checkIfLiked(user_Id, taskId) {
+    try {
+        let isFavorite = false
+        // Favorite 컬렉션에서 user_Id와 taskId로 조회
+        const data = await Favorite.findOne({
+            user_Id
+        });
+        const favorites = data.favorites
+        for (const element of favorites) {
+            if (element.taskId.equals(taskId)) {
+                isFavorite = true;
+                break; // 루프를 종료
+            }
+        }
+        // 결과가 존재하면 true, 아니면 false 반환
+        return isFavorite;
+    } catch (error) {
+        console.error('Error checking like status:', error);
+        throw new Error('Failed to check like status');
+    }
+}
+
 
 // 찜 추가 또는 삭제
 export async function toggleFavorite(user_Id, taskId, isFavorite) {

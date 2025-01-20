@@ -15,7 +15,7 @@ export async function getLikeList(user_Id) {
         // 필요한 데이터만 정리하여 반환
         return orders.map(order => ({
             title: order.title,
-            photoUrl: order.taskDetails?.photoUrl || null,
+            thumnail: order.taskDetails?.thumnail || null,
             location: order.location?.area || null,
             schedule: order.schedule || null,
             payment: order.payment || 0,
