@@ -15,18 +15,23 @@ export async function getLikeList(user_Id) {
         const taskIds = userFavorite.favorites.map(fav => fav.taskId);
 
         // Order 컬렉션에서 taskIds를 기반으로 주문 목록 가져옴
-        const orders = await Order.find({ taskId: { $in: taskIds } });
+        const orders = await Order.find({ taskId: { $in: taskIds } })
+            .populate('user_Id', 'photoUrl nickname'); // user_Id를 참조하여 photoUrl과 nickname 가져옴
 
         // 필요한 데이터만 정리하여 반환
         return orders.map(order => ({
             taskId: order.taskId,
             title: order.title,
-            photoUrl: order.taskDetails?.photoUrl || null,
+            photoUrl: order.taskDetails?.photoUrl || null, // 심부름 사진
             location: order.location?.area || null,
             schedule: order.schedule || null,
             payment: order.payment || 0,
             likesCount: order.likes?.count || 0,
-            questionsCount: order.QnA ? order.QnA.length : 0
+            questionsCount: order.QnA ? order.QnA.length : 0,
+            user: {
+                photoUrl: order.user_Id?.photoUrl || null, // 신청자의 프로필 사진
+                nickname: order.user_Id?.nickname || "익명 사용자" // 신청자의 닉네임
+            }
         }));
     } catch (error) {
         console.error('Error fetching like list:', error);

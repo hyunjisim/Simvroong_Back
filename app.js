@@ -44,6 +44,15 @@ app.use(
 
 app.use(express.json())
 
+// app.use((req, res, next) => {
+//     console.log(`요청 경로: ${req.method} ${req.originalUrl}`);
+//     next();
+// });
+// app.use('/profile', (req, res, next) => {
+//     console.log('profileRoutes 등록 확인');
+//     next();
+// });
+
 app.use('/list', listRoutes)
 app.use('/main', mainRoutes)
 app.use('/order', orderRoutes)

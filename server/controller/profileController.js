@@ -115,12 +115,28 @@ export async function updateImg(req, res) {
 }
 
 export async function getUserData(req, res) {
-    const decodeToken = req.mongo_id
-
-    const user = await authRepository.findUserbyToken(decodeToken)
-    if (!user) {
-        return res.status(400).send('존재하지 않는 사용자 입니다.')
+    // console.log('getUserData 호출됨'); // 추가 로그
+    try {
+        const user = await authRepository.findUserbyToken(req.mongo_id);
+        if (!user) {
+            console.log('사용자 정보 없음');
+            return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+        }
+        return res.status(200).json({
+            nickname: user.nickname,
+            photoUrl: user.photoUrl,
+            stats: {
+                activities: user.activities || 0,
+                completedTasks: user.completedTasks || 0,
+                reviewCount: user.reviewCount || 0
+            },
+            tasks: user.tasks || [],
+            reviews: user.reviews || []
+        });
+    } catch (error) {
+        console.error('getUserData 에러:', error);
+        return res.status(500).json({ message: '서버 에러 발생' });
     }
-    return res.status(200).json({ nickname: user.nickname, photoUrl: user.photoUrl })
 }
+
 

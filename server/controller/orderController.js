@@ -1,34 +1,27 @@
-import * as orderQuery from '../query/orderQuery.js'
-// import * as authQuery from '../query/authQuery.js'
-
-export async function createOrder(req, res, next) {
+import * as orderQuery from "../query/orderQuery.js";
+export const createOrder = async (req, res) => {
     try {
-        console.log("요청 데이터:", req.body);
-        console.log("S3 업로드 경로:", req.awsUploadPath);
-        const user_Id = req.mongo_id;
-        const orderData = { ...req.body, user_Id };
-        // S3 URL 추가
-        if (req.awsUploadPath) {
-            orderData.taskDetails = {
-                ...orderData.taskDetails,
-                photoUrl: req.awsUploadPath,
-            };
-        }
-        console.log("최종 데이터:", orderData);
-        const order = await orderQuery.create(orderData);
-
-        if (!order.taskId) {
-            throw new Error('Order 생성 중 taskId가 없습니다.');
-        }
-
-        // console.log('생성된 Order의 taskId:', order.taskId);
-
-        res.status(201).json({order, user_Id});
+      console.log("요청 데이터:", req.body);
+  
+      // 데이터 검증: req.body가 올바른지 확인
+      if (!req.body.category || !req.body.title || !req.body.taskDetails) {
+        return res.status(400).json({ message: "필수 데이터가 누락되었습니다." });
+      }
+  
+      const user_Id = req.mongo_id;
+      const orderData = { ...req.body, user_Id };
+  
+      console.log("저장할 데이터:", orderData); // 최종 데이터 확인
+  
+      const order = await orderQuery.create(orderData);
+      if (!order) {
+        throw new Error("Order 생성에 실패했습니다.");
+      }
+  
+      res.status(201).json({ order });
     } catch (error) {
-        console.error('Order 생성 중 오류 발생:', error);
-        res.status(500).json({
-            message: '서버 오류가 발생했습니다.',
-            error: error.message
-        });
+      console.error("Order 생성 중 오류 발생:", error);
+      res.status(500).json({ message: "서버 오류가 발생했습니다.", error: error.message });
     }
-}
+  };
+  

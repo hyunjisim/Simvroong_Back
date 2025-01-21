@@ -65,7 +65,7 @@ export async function getChatRoomList(req, res) {
         const chatRoomsWithNicknames = await Promise.all(
             chatRooms.map(async (room) => {
                 let otherUserId;
-                let otherUserNickname;
+                let otherUserDetails;
                 // console.log('room',room);
 
                 // TaskUserId로 데이터를 찾았을 경우
@@ -81,17 +81,25 @@ export async function getChatRoomList(req, res) {
                 // 상대방 ID로 닉네임 조회
                 if (otherUserId) {
                     const otherUser = await User.findById(new mongoose.Types.ObjectId(otherUserId))
-                        .select('nickname');
-                    otherUserNickname = otherUser?.nickname || 'Unknown User';
+                        .select('nickname photoUrl'); // 닉네임과 프로필 사진 가져오기
+
+                    otherUserDetails = {
+                        nickname: otherUser?.nickname || 'Unknown User',
+                        photoUrl: otherUser?.photoUrl || null,
+                    };
                 } else {
-                    otherUserNickname = 'Unknown User';
+                    otherUserDetails = {
+                        nickname: 'Unknown User',
+                        photoUrl: null,
+                    };
                 }
 
                 return {
                     _id: room._id,
                     lastMessage: room.lastMessage,
                     lastMessageTime: room.lastMessageTime,
-                    otherUserNickname: otherUserNickname
+                    otherUserNickname: otherUserNickname,
+                    otherUserPhotoUrl: otherUserDetails.photoUrl
                 };
             })
         );

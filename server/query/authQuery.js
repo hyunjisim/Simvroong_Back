@@ -81,8 +81,10 @@ export async function updatePassword(userId, newPw) {
 }
 
 export async function findUserbyToken(decodedToken) {
-    const user = await User.findById(String(decodedToken))
-    return user ? user : null
+    // console.log("findUserbyToken - decodedToken:", decodedToken); // decodedToken 값 확인
+    const user = await User.findById(String(decodedToken));
+    // console.log("findUserbyToken - 찾은 유저:", user); // 반환된 유저 확인
+    return user ? user : null;
 }
 
 export async function modifyUser(newNickname, userId, newPhoneNumber) {

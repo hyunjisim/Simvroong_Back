@@ -32,6 +32,10 @@ router.post('/userInfo', isAuth, profileController.userInfo)
 router.put('/userInfo/modifyInfo', isAuth, profileController.modifyUserInfo)
 router.put('/updatePassword', isAuth, profileController.updatePassword)
 router.put("/upload", isAuth, aws_s3_upload, profileController.updateImg)
+router.get('/', isAuth, (req, res) => {
+    // console.log('profile 라우터 호출됨'); // 추가 로그
+    profileController.getUserData(req, res);
+});
 
 // router.put('/:token', isAuth, profileController.updateUserInfo)
 

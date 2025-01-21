@@ -30,5 +30,12 @@ export const config = {
     },
     db: {
         host: required('DB_HOST')
+    },
+    aws: {
+        access_key: process.env.AWS_ACCESS_KEY,
+        secret_key: process.env.AWS_SECRET_KEY,
+        bucket_region: process.env.AWS_REGION,
+        bucket_name: process.env.AWS_BUCKET_NAME,
+        bucket_directory: process.env.AWS_BUCKET_DIRECTORY,
     }
 }
