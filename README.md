@@ -28,12 +28,12 @@
 ---
 
 ## 🚀 프로젝트 실행 방법
+백엔드와 프론트엔드 둘다 실행해야 합니다
 
 ### 1️⃣ **백엔드 실행**
 ```bash
 # 레포지토리 클론
-git clone https://github.com/your-repo/shimburung.git
-cd shimburung/backend
+git clone https://github.com/hyunjisim/Simvroong_Back.git
 
 # 패키지 설치
 npm install
