@@ -20,7 +20,7 @@
 | 분야        | 기술 |
 |------------|------------------------------------------------------|
 | **Frontend** | `React`, `module.CSS` |
-| **Backend**  | `Node.js`, `Express.js`, `MongoDB` |
+| **Backend**  | `Node.js`, `Express.js`, `MongoDB`,'websocket' |
 | **Database** | `MongoDB Atlas` |
 | **Authentication** | `JWT (JSON Web Token)` |
 | **Deployment** | `AWS EC2`|
